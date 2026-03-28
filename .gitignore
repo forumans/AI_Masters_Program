@@ -52,3 +52,33 @@ desktop.ini
 # Database files
 *.sqlite
 *.db
+
+# Node.js
+node_modules/
+package-lock.json
+
+# React build output
+hr_assistant/hr_assistant_web/build/
+
+# HR Assistant specific
+hr_assistant/hr_assistant_api/.env
+hr_assistant/hr_assistant_web/.env
+hr_assistant/**/__pycache__/
+hr_assistant/**/*.pyc
+hr_assistant/**/*.pyo
+hr_assistant/hr_assistant_web/node_modules/
+hr_assistant/hr_assistant_web/package-lock.json
+
+# ChromaDB data
+hr_assistant/hr_assistant_api/chroma_data/
+
+# SQL scripts for fixes (temporary)
+hr_assistant/fix_permissions.sql
+hr_assistant/check_permissions.sql
+hr_assistant/fix_permissions_comprehensive.sql
+hr_assistant/rename_schema.sql
+
+# Python cache files in hr_assistant
+hr_assistant/**/__pycache__/
+hr_assistant/**/*.pyc
+hr_assistant/**/*.pyo
