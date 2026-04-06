@@ -1,0 +1,15 @@
+# Context-Free Grammar generated from FIFAWorldCup2018.txt
+# Terminals are the 2 most frequent words of each POS type.
+
+# Structural rules
+S  -> NP VP
+VP -> V NP
+VP -> V NP PP
+NP -> DT N
+PP -> P NP
+
+# Lexical rules (2 most frequent words per category)
+N  -> 'World' | 'Cup'
+V  -> 'was' | 'had'
+DT -> 'the' | 'a'
+P  -> 'of' | 'in'
