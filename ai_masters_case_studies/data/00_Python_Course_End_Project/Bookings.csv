@@ -1,0 +1,340 @@
+customer_id,booking_id,from_city,from_country,to_city,to_country,booking_time,device_type_used,INR_Amount,service_name,no_of_passengers,days_to_departure,distance_km
+customer_259,booking_82,Gurgaon,India,Ahmedabad,India,2020-02-05T16:12:08Z,Desktop,2565.28,MMT,1.0,10.0,747.8
+customer_303,booking_156,Delhi,India,Brussels,Belgium,2018-11-21T08:21:47Z,Android,23120.0,YATRA,1.0,1.0,6701.5
+customer_203,booking_99,Devanhalli,India,Frankfurt am Main,Germany,2019-12-16T22:54:58Z,Android,25717.6,YATRA,1.0,32.0,7712.0
+customer_211,booking_319,Gurgaon,India,Frankfurt am Main,Germany,2021-10-29T12:25:38Z,Desktop,135969.6,GOIBIBO,2.0,69.0,6112.5
+customer_287,booking_222,Gurgaon,India,Roissy-en-France,France,2020-08-11T16:09:10Z,Android,31791.2,GOIBIBO,1.0,3.0,6570.4
+customer_99,booking_241,Gurgaon,India,Roissy-en-France,France,2021-04-13T16:12:34Z,IOS,21843.2,GOIBIBO,1.0,11.0,6570.4
+customer_28,booking_129,Kolkata,India,Gurgaon,India,2022-02-16T15:50:27Z,Desktop,13442.4,GOIBIBO,1.0,13.0,1310.7
+customer_217,booking_18,Bhubaneswar,India,Durlaga,India,2021-09-10T19:09:12Z,Desktop,4352.0,GOIBIBO,2.0,47.0,260.5
+customer_161,booking_136,Gurgaon,India,Amsterdam,Netherlands,2022-03-14T15:05:23Z,Desktop,64316.8,MMT,1.0,86.0,6354.9
+customer_150,booking_289,Delhi,India,Hamburg,Germany,2018-09-25T18:29:22Z,Desktop,47974.93,YATRA,1.0,17.0,6275.7
+customer_111,booking_141,Gurgaon,India,Berlin,Germany,2019-10-10T19:53:03Z,Desktop,28788.0,YATRA,1.0,8.0,6008.3
+customer_178,booking_133,Mumbai,India,Paris,France,2021-02-27T19:26:11Z,MobileWeb,92544.0,GOIBIBO,3.0,7.0,7010.2
+customer_197,booking_154,Delhi,India,Fiumicino,Italy,2018-12-01T21:38:40Z,Desktop,22160.0,YATRA,1.0,6.0,6082.6
+customer_282,booking_212,Indore,India,Mumbai,India,2021-10-16T07:56:59Z,IOS,4725.6,GOIBIBO,1.0,0.0,506.2
+customer_43,booking_101,Mumbai,India,Zaventem,Belgium,2020-01-18T06:46:09Z,IOS,31588.0,GOIBIBO,1.0,19.0,7166.5
+customer_271,booking_105,Mumbai,India,London,United Kingdom,2019-09-02T10:36:27Z,IOS,22599.88,YATRA,1.0,16.0,7544.3
+customer_179,booking_218,Gurgaon,India,Port Blair,India,2020-01-12T17:34:59Z,Desktop,17804.8,MMT,2.0,35.0,2486.8
+customer_7,booking_132,Devanhalli,India,Gurgaon,India,2021-04-14T18:20:41Z,Desktop,4330.28,MMT,1.0,8.0,1694.7
+customer_210,booking_91,Gurgaon,India,Prague,Czechia,2019-12-26T00:55:55Z,Desktop,29786.14,GOIBIBO,1.0,40.0,5901.3
+customer_269,booking_285,Hyderabad,India,San Francisco,USA,2020-10-15T13:36:14Z,Desktop,86960.48,YATRA,1.0,22.0,13505.2
+customer_114,booking_46,Delhi,India,Rome,Italy,2018-12-20T11:45:59Z,Desktop,23200.0,YATRA,1.0,1.0,6059.1
+customer_78,booking_206,Gurgaon,India,Lucknow,India,2021-10-21T08:16:05Z,Desktop,4612.8,GOIBIBO,1.0,3.0,422.0
+customer_229,booking_280,Gurgaon,India,Milan,Italy,2020-02-11T05:46:16Z,MobileWeb,28513.6,YATRA,1.0,0.0,6316.8
+customer_227,booking_97,Mumbai,India,Gurgaon,India,2020-11-08T18:47:31Z,Android,32929.6,YATRA,3.0,5.0,1125.5
+customer_179,booking_157,Mumbai,India,Jaipur,India,2020-01-23T13:58:39Z,Desktop,6953.6,GOIBIBO,1.0,15.0,921.8
+customer_188,booking_184,Rāja Sānsi,India,Glasgow,United Kingdom,2020-01-31T19:48:03Z,Android,44276.57,GOIBIBO,1.0,10.0,6890.3
+customer_25,booking_81,Rāja Sānsi,India,London,United Kingdom,2018-11-07T19:38:04Z,Desktop,69568.01,YATRA,2.0,9.0,6606.1
+customer_68,booking_301,Madhyamgram,India,London,United Kingdom,2020-01-05T23:02:52Z,Desktop,61125.76,YATRA,2.0,16.0,8483.8
+customer_42,booking_188,Chennai,India,Munich,Germany,2021-11-15T11:18:10Z,MobileWeb,40652.8,GOIBIBO,1.0,59.0,7352.9
+customer_247,booking_119,Gurgaon,India,Fiumicino,Italy,2021-11-08T15:50:49Z,Android,21788.0,GOIBIBO,1.0,25.0,5932.6
+customer_22,booking_134,New Delhi,India,Hamburg,Germany,2018-10-04T06:57:27Z,MobileWeb,19859.2,YATRA,1.0,12.0,6277.0
+customer_40,booking_121,Bālāpur,India,Dubai,United Arab Emirates,2018-09-11T14:08:05Z,Desktop,39829.6,YATRA,1.0,1.0,2558.6
+customer_89,booking_226,Varanasi,India,Pune,India,2021-06-22T18:19:48Z,Desktop,10962.21,GOIBIBO,1.0,12.0,1208.9
+customer_92,booking_249,Gurgaon,India,Rozenburg,Netherlands,2019-06-14T19:12:06Z,Desktop,36480.0,YATRA,1.0,16.0,6672.6
+customer_268,booking_58,Gurgaon,India,Jodhpur,India,2021-12-12T22:58:25Z,IOS,5956.77,GOIBIBO,2.0,24.0,475.0
+customer_261,booking_181,Ahmedabad,India,Gurgaon,India,2021-11-13T08:08:46Z,Desktop,5791.76,GOIBIBO,1.0,6.0,760.6
+customer_183,booking_197,Jaipur,India,Gurgaon,India,2020-02-10T15:16:06Z,IOS,10287.4,GOIBIBO,2.0,2.0,210.3
+customer_147,booking_23,Rāja Sānsi,India,Fiumicino,Italy,2018-09-29T19:37:19Z,Android,23884.8,YATRA,1.0,4.0,5686.1
+customer_174,booking_76,Ahmedabad,India,London,United Kingdom,2020-02-06T13:54:26Z,Android,31940.8,GOIBIBO,1.0,2.0,7173.4
+customer_248,booking_8,Gurgaon,India,Roissy-en-France,France,2019-06-30T12:26:58Z,Tablet,23280.0,YATRA,1.0,171.0,6854.8
+customer_39,booking_74,Thiruvananthapuram,India,Riga,Latvia,2018-09-29T13:53:17Z,Android,47954.4,YATRA,1.0,27.0,7311.2
+customer_193,booking_192,Rāja Sānsi,India,Fiumicino,Italy,2018-09-24T15:07:04Z,Android,30346.4,YATRA,1.0,3.0,5686.1
+customer_137,booking_88,Gurgaon,India,Birmingham,United Kingdom,2019-12-22T08:49:25Z,IOS,46142.4,YATRA,1.0,19.0,7190.9
+customer_222,booking_159,Gurgaon,India,Paris,France,2019-10-04T14:02:38Z,Desktop,18852.8,GOIBIBO,1.0,5.0,6869.5
+customer_274,booking_275,Mumbai,India,Frankfurt am Main,Germany,2020-07-01T21:59:27Z,IOS,41838.4,GOIBIBO,1.0,16.0,6564.3
+customer_66,booking_78,Gurgaon,India,Frankfurt am Main,Germany,2021-08-29T18:39:56Z,IOS,26336.0,GOIBIBO,1.0,49.0,6112.5
+customer_228,booking_176,Devanhalli,India,Frankfurt am Main,Germany,2022-01-14T05:54:40Z,Desktop,22368.8,GOIBIBO,1.0,33.0,7401.2
+customer_109,booking_114,Jaipur,India,Mumbai,India,2019-12-10T09:57:11Z,Desktop,10894.4,GOIBIBO,1.0,13.0,921.8
+customer_49,booking_56,Gurgaon,India,Roissy-en-France,France,2021-10-11T05:01:16Z,IOS,22013.6,GOIBIBO,1.0,1.0,6564.2
+customer_128,booking_66,Gurgaon,India,Milan,Italy,2020-11-12T15:10:03Z,Android,33551.2,GOIBIBO,1.0,14.0,6125.7
+customer_272,booking_230,Gurgaon,India,Beijing,China,2019-12-04T20:55:24Z,Desktop,26103.78,GOIBIBO,1.0,47.0,3838.7
+customer_141,booking_106,Delhi,India,Edinburgh,United Kingdom,2020-01-21T05:51:09Z,MobileWeb,32372.8,GOIBIBO,1.0,7.0,7277.4
+customer_23,booking_310,New Delhi,India,Villafranca di Verona,Italy,2018-10-06T14:32:45Z,MobileWeb,16996.8,YATRA,2.0,3.0,6181.7
+customer_61,booking_109,Gurgaon,India,Amsterdam,Netherlands,2018-09-04T16:45:23Z,Desktop,18096.0,YATRA,1.0,108.0,6660.7
+customer_18,booking_165,Mumbai,India,Nagpur,India,2020-02-24T12:03:11Z,Desktop,4148.0,MMT,1.0,5.0,689.1
+customer_245,booking_215,Pune,India,Nagpur,India,2020-01-28T16:48:38Z,Android,7241.46,MMT,1.0,7.0,621.7
+customer_119,booking_12,Mumbai,India,Gurgaon,India,2021-01-03T18:39:55Z,Desktop,4182.94,MMT,1.0,4.0,1125.5
+customer_285,booking_42,Gurgaon,India,Lucknow,India,2020-01-06T20:51:06Z,Desktop,4072.4,MMT,1.0,7.0,424.0
+customer_132,booking_5,Delhi,India,Dubai,United Arab Emirates,2020-11-21T17:08:00Z,Desktop,9266.03,YATRA,1.0,4.0,2202.3
+customer_138,booking_186,Gurgaon,India,Frankfurt am Main,Germany,2021-03-18T17:18:40Z,IOS,34980.8,GOIBIBO,1.0,8.0,6114.5
+customer_26,booking_110,Thiruvananthapuram,India,Frankfurt am Main,Germany,2022-01-14T14:46:21Z,Desktop,46818.4,GOIBIBO,1.0,9.0,7740.7
+customer_131,booking_71,Devanhalli,India,Mumbai,India,2021-09-21T12:11:16Z,Android,4534.4,GOIBIBO,1.0,17.0,833.7
+customer_207,booking_214,Gurgaon,India,Floris,USA,2018-10-14T14:56:27Z,Desktop,35288.8,YATRA,1.0,3.0,14334.7
+customer_280,booking_100,Gurgaon,India,Paris,France,2021-07-01T09:22:13Z,IOS,27328.8,GOIBIBO,1.0,31.0,6583.3
+customer_184,booking_293,New Delhi,India,Milan,Italy,2018-10-06T02:06:14Z,Android,21000.8,YATRA,1.0,1.0,6321.1
+customer_246,booking_25,Delhi,India,Paris,France,2022-05-25T11:55:16Z,IOS,33216.0,GOIBIBO,1.0,9.0,6585.3
+customer_72,booking_256,Gurgaon,India,Vizzola Ticino,Italy,2019-12-13T18:59:13Z,Android,27562.4,GOIBIBO,1.0,8.0,6358.7
+customer_251,booking_204,Delhi,India,Vizzola Ticino,Italy,2018-10-22T13:35:48Z,Desktop,21839.2,YATRA,1.0,5.0,6362.0
+customer_82,booking_72,Chennai,India,Roissy-en-France,France,2021-05-18T13:17:38Z,Android,21573.6,GOIBIBO,1.0,12.0,8023.8
+customer_208,booking_33,Mumbai,India,Chicalim,India,2020-02-14T15:01:05Z,IOS,4395.01,GOIBIBO,1.0,1.0,420.7
+customer_56,booking_236,Gurgaon,India,Mumbai,India,2019-12-20T15:56:47Z,Android,6901.6,GOIBIBO,1.0,1.0,1125.8
+customer_117,booking_163,Gurgaon,India,Barcelona,Spain,2022-03-30T20:13:00Z,MobileWeb,62355.2,MMT,1.0,311.0,6765.0
+customer_292,booking_196,Gurgaon,India,Kochi,India,2020-02-07T10:27:20Z,Desktop,6829.9,MMT,1.0,7.0,2060.9
+customer_215,booking_146,Mumbai,India,Gurgaon,India,2021-01-05T18:33:31Z,Desktop,3865.09,MMT,1.0,6.0,1125.5
+customer_284,booking_329,Pune,India,Gurgaon,India,2021-01-14T19:29:52Z,Desktop,4567.55,MMT,1.0,6.0,1151.5
+customer_146,booking_86,Gurgaon,India,Fiumicino,Italy,2020-02-11T14:42:36Z,Android,29333.6,YATRA,1.0,13.0,6076.8
+customer_59,booking_43,Kolkata,India,Kathmandu,Nepal,2020-02-08T18:16:26Z,MobileWeb,9488.0,YATRA,1.0,24.0,648.3
+customer_129,booking_246,Gurgaon,India,Vizzola Ticino,Italy,2019-12-13T11:56:21Z,IOS,53844.8,GOIBIBO,2.0,6.0,6358.7
+customer_243,booking_225,Chicalim,India,Roissy-en-France,France,2020-03-20T09:58:05Z,Desktop,78060.0,GOIBIBO,1.0,1.0,7680.4
+customer_116,booking_137,Ahmedabad,India,Frankfurt am Main,Germany,2019-10-07T15:49:42Z,Desktop,24212.8,GOIBIBO,1.0,8.0,6454.6
+customer_97,booking_257,Dharamsala,India,Gurgaon,India,2021-10-10T13:01:00Z,IOS,6863.2,GOIBIBO,1.0,3.0,416.6
+customer_176,booking_2,Barelā,India,Gurgaon,India,2022-01-12T15:36:09Z,IOS,13067.2,GOIBIBO,3.0,3.0,666.7
+customer_234,booking_294,Delhi,India,New York,USA,2018-11-17T15:58:52Z,IOS,15520.0,MMT,1.0,22.0,13893.2
+customer_279,booking_305,Mumbai,India,Istanbul,Turkey,2020-02-13T09:29:18Z,IOS,22466.51,GOIBIBO,1.0,18.0,4882.1
+customer_101,booking_63,Gurgaon,India,Varanasi,India,2021-12-31T09:39:33Z,IOS,6050.63,GOIBIBO,1.0,12.0,687.6
+customer_155,booking_261,Jaipur,India,Agra,India,2020-01-24T08:28:21Z,IOS,2008.0,GOIBIBO,1.0,11.0,222.7
+customer_37,booking_169,Gurgaon,India,Agartala,India,2022-01-05T21:47:05Z,Android,7996.45,GOIBIBO,1.0,3.0,1501.4
+customer_73,booking_10,Gurgaon,India,Agartala,India,2022-03-09T22:26:56Z,IOS,8071.2,GOIBIBO,1.0,3.0,1501.4
+customer_201,booking_288,Thrissur,India,Thiruvananthapuram,India,2019-12-20T13:36:57Z,IOS,12987.82,GOIBIBO,3.0,0.0,237.8
+customer_44,booking_69,Gurgaon,India,Rāja Sānsi,India,2021-09-28T18:55:25Z,Android,4700.0,GOIBIBO,1.0,3.0,414.6
+customer_202,booking_272,Gurgaon,India,Ahmedabad,India,2020-02-07T10:53:55Z,Desktop,7422.19,GOIBIBO,1.0,9.0,747.8
+customer_95,booking_245,Mumbai,India,Gurgaon,India,2020-01-07T19:26:11Z,Desktop,7053.6,GOIBIBO,1.0,3.0,1125.8
+customer_177,booking_259,Chennai,India,Frankfurt am Main,Germany,2021-11-15T19:24:40Z,IOS,27212.8,GOIBIBO,1.0,13.0,7586.2
+customer_165,booking_167,Gurgaon,India,Lisbon,Portugal,2021-10-02T23:28:29Z,Android,71434.4,GOIBIBO,2.0,97.0,7770.2
+customer_262,booking_95,Ahmedabad,India,Chicalim,India,2021-01-07T05:25:37Z,Desktop,3919.3,MMT,1.0,49.0,858.3
+customer_122,booking_338,New Delhi,India,Geneva,Switzerland,2018-12-21T20:47:44Z,IOS,60556.8,YATRA,2.0,44.0,6574.0
+customer_55,booking_94,Mumbai,India,London,United Kingdom,2018-10-08T16:58:22Z,Tablet,19642.02,YATRA,1.0,2.0,7544.3
+customer_142,booking_325,Gurgaon,India,Frankfurt am Main,Germany,2021-08-04T08:49:05Z,Android,39012.0,GOIBIBO,1.0,30.0,6112.5
+customer_298,booking_290,Devanhalli,India,Frankfurt am Main,Germany,2019-09-13T13:16:24Z,Android,27282.4,GOIBIBO,1.0,14.0,7712.0
+customer_121,booking_21,Delhi,India,Fiumicino,Italy,2018-10-02T09:43:04Z,Desktop,20740.0,YATRA,1.0,3.0,6082.6
+customer_282,booking_189,Mumbai,India,Chicalim,India,2021-09-04T02:13:37Z,IOS,4616.0,GOIBIBO,1.0,1.0,425.1
+customer_97,booking_143,Delhi,India,Yol,India,2021-09-13T11:40:31Z,MobileWeb,4856.8,GOIBIBO,1.0,10.0,401.3
+customer_140,booking_284,Gurgaon,India,Paris,France,2020-03-19T01:35:22Z,Desktop,49136.8,GOIBIBO,1.0,1.0,6869.5
+customer_112,booking_244,Chennai,India,Nice,France,2019-12-30T05:50:45Z,Android,41744.0,GOIBIBO,1.0,9.0,7911.7
+customer_263,booking_50,Chennai,India,Paris,France,2021-09-10T03:46:34Z,MobileWeb,64051.2,GOIBIBO,4.0,24.0,8036.0
+customer_233,booking_233,Gurgaon,India,Paris,France,2019-07-25T09:57:09Z,IOS,25680.0,GOIBIBO,1.0,7.0,6869.5
+customer_219,booking_335,Gurgaon,India,Frankfurt am Main,Germany,2021-10-10T18:38:50Z,Desktop,102966.4,GOIBIBO,2.0,114.0,6112.5
+customer_11,booking_331,Bālāpur,India,Frankfurt am Main,Germany,2021-10-07T17:20:42Z,Desktop,44094.4,GOIBIBO,1.0,29.0,7109.2
+customer_283,booking_220,Delhi,India,Milan,Italy,2018-10-14T14:51:03Z,Desktop,22280.8,YATRA,1.0,13.0,6320.2
+customer_297,booking_29,Gurgaon,India,Tiruchi,India,2020-03-10T11:20:58Z,Android,5019.2,YATRA,1.0,2.0,1970.8
+customer_9,booking_303,Gurgaon,India,Guwahati,India,2020-03-02T11:44:43Z,IOS,7233.6,YATRA,1.0,11.0,1476.4
+customer_144,booking_296,Surat,India,Devanhalli,India,2020-02-09T16:50:05Z,Desktop,8208.8,GOIBIBO,1.0,1.0,1022.5
+customer_118,booking_38,Rāja Sānsi,India,Fiumicino,Italy,2018-09-25T16:24:12Z,Desktop,26999.2,YATRA,1.0,3.0,5686.1
+customer_235,booking_26,Gurgaon,India,Bhubaneswar,India,2020-03-19T09:15:19Z,Android,6467.2,GOIBIBO,1.0,2.0,1274.7
+customer_254,booking_295,Gurgaon,India,Paris,France,2020-01-01T18:46:38Z,Android,25426.4,GOIBIBO,1.0,6.0,6869.5
+customer_58,booking_283,Gurgaon,India,Mohali,India,2021-06-01T07:52:49Z,Desktop,3488.8,GOIBIBO,1.0,3.0,248.6
+customer_160,booking_313,Mumbai,India,Lucknow,India,2020-01-28T16:47:01Z,Desktop,9441.95,MMT,1.0,3.0,1193.1
+customer_130,booking_31,Gurgaon,India,Prague,Czechia,2019-07-08T21:10:44Z,Desktop,32636.8,YATRA,1.0,41.0,5901.3
+customer_224,booking_271,Gurgaon,India,Berlin,Germany,2019-08-31T07:30:27Z,Desktop,32960.0,YATRA,1.0,15.0,6008.3
+customer_260,booking_149,Gurgaon,India,Paris,France,2022-03-04T11:08:26Z,Android,23720.0,GOIBIBO,1.0,27.0,6583.3
+customer_204,booking_255,Gurgaon,India,Amritsar,India,2022-02-03T15:40:46Z,MobileWeb,2538.4,GOIBIBO,1.0,18.0,403.9
+customer_294,booking_217,Gurgaon,India,Frankfurt am Main,Germany,2021-09-02T07:56:26Z,Android,78603.85,GOIBIBO,1.0,6.0,6112.5
+customer_15,booking_168,Gannavaram,India,Bālāpur,India,2019-12-17T11:14:35Z,Android,2467.2,GOIBIBO,1.0,28.0,261.5
+customer_30,booking_62,Mumbai,India,Gurgaon,India,2020-02-22T13:24:21Z,Android,2116.8,GOIBIBO,1.0,49.0,1125.8
+customer_124,booking_327,Gurgaon,India,Dubai,United Arab Emirates,2022-06-04T16:38:50Z,IOS,30332.69,GOIBIBO,2.0,9.0,2188.9
+customer_46,booking_219,Kochi,India,Frankfurt am Main,Germany,2022-02-21T17:14:02Z,Desktop,26888.0,GOIBIBO,1.0,103.0,7576.1
+customer_293,booking_139,Mumbai,India,Gurgaon,India,2021-04-13T18:24:24Z,Desktop,4900.07,MMT,1.0,9.0,1125.5
+customer_93,booking_277,Bālāpur,India,Düsseldorf,Germany,2019-12-08T11:22:11Z,IOS,43935.2,YATRA,1.0,112.0,7591.8
+customer_264,booking_55,Chennai,India,Paris,France,2019-11-14T22:23:48Z,Desktop,24143.2,GOIBIBO,1.0,6.0,8427.4
+customer_96,booking_312,Mumbai,India,Madhyamgram,India,2020-01-16T22:36:23Z,IOS,17225.6,GOIBIBO,2.0,39.0,1666.2
+customer_267,booking_240,Gurgaon,India,Roissy-en-France,France,2019-09-07T22:30:03Z,IOS,25140.8,GOIBIBO,1.0,188.0,6854.8
+customer_81,booking_32,Gurgaon,India,Frankfurt am Main,Germany,2020-01-29T16:54:24Z,Android,27948.8,YATRA,1.0,64.0,6355.5
+customer_186,booking_250,Mumbai,India,Ikeja,Nigeria,2020-02-04T18:43:47Z,IOS,25296.8,GOIBIBO,1.0,8.0,7666.5
+customer_221,booking_164,Chennai,India,Frankfurt am Main,Germany,2021-08-22T18:12:36Z,Desktop,54750.4,GOIBIBO,1.0,6.0,7586.2
+customer_171,booking_201,Delhi,India,Rome,Italy,2018-11-16T18:50:06Z,MobileWeb,20800.0,YATRA,1.0,15.0,6059.1
+customer_20,booking_185,Gurgaon,India,Mérignac,France,2019-12-05T16:52:57Z,Desktop,63586.4,YATRA,1.0,94.0,7163.7
+customer_154,booking_147,Hyderābād,India,Dubai,United Arab Emirates,2018-09-11T14:03:16Z,Desktop,39829.6,YATRA,1.0,1.0,2555.1
+customer_187,booking_318,Delhi,India,Lucknow,India,2022-05-07T01:58:03Z,MobileWeb,5585.6,GOIBIBO,1.0,19.0,415.7
+customer_100,booking_300,Hyderabad,India,London,United Kingdom,2022-02-16T19:28:13Z,IOS,44749.6,GOIBIBO,1.0,26.0,7721.7
+customer_249,booking_268,Gurgaon,India,Bagdogra,India,2020-01-02T03:29:17Z,IOS,4360.0,GOIBIBO,1.0,36.0,1129.4
+customer_265,booking_124,Gurgaon,India,Roissy-en-France,France,2019-12-23T08:27:51Z,Android,24072.0,GOIBIBO,1.0,7.0,6854.8
+customer_115,booking_323,Devanhalli,India,Amsterdam,Netherlands,2020-01-24T10:41:41Z,Android,31137.08,GOIBIBO,1.0,6.0,8077.8
+customer_6,booking_4,Chicalim,India,Mumbai,India,2020-01-15T20:52:32Z,MobileWeb,9313.6,MMT,4.0,59.0,420.7
+customer_159,booking_287,Gurgaon,India,Reggio Calabria,Italy,2019-11-09T13:52:31Z,Android,31216.8,YATRA,1.0,23.0,5804.1
+customer_104,booking_224,Hyderabad,India,Madrid,Spain,2020-02-13T13:16:21Z,Android,26200.0,YATRA,1.0,14.0,8400.3
+customer_246,booking_263,Gurgaon,India,Roissy-en-France,France,2021-11-28T12:49:57Z,IOS,43783.2,GOIBIBO,1.0,4.0,6564.2
+customer_65,booking_20,Gurgaon,India,Rāja Sānsi,India,2020-01-31T23:33:13Z,Android,3974.4,GOIBIBO,1.0,3.0,421.0
+customer_175,booking_85,Devanhalli,India,Frankfurt am Main,Germany,2021-03-31T15:01:05Z,IOS,15365.6,GOIBIBO,1.0,25.0,7391.4
+customer_34,booking_35,Gurgaon,India,Frankfurt am Main,Germany,2020-09-24T06:59:37Z,IOS,26236.0,YATRA,1.0,16.0,6114.5
+customer_232,booking_317,Delhi,India,Naples,Italy,2018-10-20T16:50:07Z,Desktop,24308.0,YATRA,1.0,6.0,5911.6
+customer_255,booking_291,Gurgaon,India,Bagdogra,India,2020-10-20T13:03:14Z,Android,3804.8,MMT,1.0,1.0,1128.9
+customer_230,booking_322,Gurgaon,India,Hamburg,Germany,2020-01-27T18:42:32Z,IOS,63316.8,YATRA,2.0,39.0,6277.5
+customer_278,booking_227,Mumbai,India,Frankfurt am Main,Germany,2020-03-18T17:02:21Z,IOS,22200.8,GOIBIBO,1.0,5.0,6815.2
+customer_77,booking_107,Varanasi,India,Pune,India,2021-06-26T22:24:21Z,Desktop,10816.87,GOIBIBO,1.0,8.0,1208.9
+customer_94,booking_316,Devanhalli,India,Gurgaon,India,2020-02-25T07:32:40Z,IOS,7068.0,GOIBIBO,1.0,12.0,1694.7
+customer_0,booking_125,Patna,India,Gurgaon,India,2020-01-28T10:03:24Z,IOS,6780.83,GOIBIBO,1.0,1.0,862.3
+customer_296,booking_59,Rāja Sānsi,India,Fiumicino,Italy,2018-10-04T15:14:21Z,Desktop,48886.4,YATRA,2.0,17.0,5686.1
+customer_38,booking_183,Bangalore,India,Roissy-en-France,France,2019-11-12T22:45:37Z,Desktop,48828.8,YATRA,1.0,35.0,8201.9
+customer_143,booking_117,Thiruvananthapuram,India,Berlin,Germany,2019-11-20T16:54:39Z,Desktop,42593.6,GOIBIBO,1.0,17.0,7811.0
+customer_60,booking_39,Gurgaon,India,Venice,Italy,2019-12-17T11:22:47Z,IOS,23339.2,YATRA,1.0,36.0,6051.5
+customer_258,booking_152,Pune,India,Varanasi,India,2020-12-23T21:02:59Z,Desktop,12213.36,MMT,2.0,4.0,1208.9
+customer_16,booking_108,Delhi,India,Devanhalli,India,2020-01-30T12:08:07Z,MobileWeb,6384.3,MMT,1.0,9.0,1715.5
+customer_237,booking_140,Kochi,India,London,United Kingdom,2021-11-27T16:27:31Z,IOS,62807.81,GOIBIBO,1.0,20.0,8203.4
+customer_137,booking_190,Gurgaon,India,Rāja Sānsi,India,2020-01-26T13:38:44Z,IOS,12094.4,GOIBIBO,1.0,1.0,421.0
+customer_195,booking_104,Delhi,India,Calgary,Canada,2018-10-04T15:09:59Z,Desktop,51683.2,YATRA,1.0,1.0,16520.3
+customer_74,booking_64,Delhi,India,Bālāpur,India,2021-10-20T22:37:14Z,MobileWeb,3440.8,GOIBIBO,1.0,43.0,1275.5
+customer_41,booking_153,Jaipur,India,Gurgaon,India,2021-02-23T19:36:09Z,Desktop,3739.36,GOIBIBO,1.0,5.0,210.3
+customer_164,booking_229,Chennai,India,Fiumicino,Italy,2019-07-29T11:23:06Z,Android,29360.0,GOIBIBO,1.0,44.0,7434.9
+customer_148,booking_111,Rāja Sānsi,India,Fiumicino,Italy,2018-10-06T12:29:44Z,Desktop,25147.2,YATRA,1.0,1.0,5686.1
+customer_75,booking_67,Gurgaon,India,Chicalim,India,2022-05-12T13:08:26Z,IOS,18184.0,GOIBIBO,2.0,29.0,1503.1
+customer_185,booking_200,Gurgaon,India,Munich,Germany,2019-10-17T21:18:47Z,Android,21353.07,YATRA,1.0,5.0,6116.3
+customer_48,booking_36,Delhi,India,Amsterdam,Netherlands,2019-01-03T18:15:21Z,Desktop,78688.0,YATRA,2.0,111.0,6659.8
+customer_246,booking_177,Gurgaon,India,Lisbon,Portugal,2021-07-24T18:33:59Z,IOS,84777.6,GOIBIBO,2.0,2.0,7767.7
+customer_176,booking_297,Gurgaon,India,Barelā,India,2021-12-16T21:22:43Z,IOS,11001.6,GOIBIBO,2.0,11.0,666.7
+customer_286,booking_306,Mumbai,India,Gurgaon,India,2021-01-29T20:15:25Z,Desktop,4386.67,MMT,1.0,12.0,1125.5
+customer_200,booking_113,Delhi,India,Varanasi,India,2020-11-08T20:58:25Z,Desktop,2837.6,YATRA,1.0,9.0,682.4
+customer_76,booking_65,New Delhi,India,Milan,Italy,2018-09-21T16:29:59Z,Tablet,21549.6,YATRA,1.0,29.0,6321.1
+customer_83,booking_228,Rāja Sānsi,India,Gurgaon,India,2022-02-14T16:28:39Z,IOS,5455.2,GOIBIBO,1.0,8.0,414.6
+customer_225,booking_15,Gurgaon,India,Dorāha,India,2020-01-06T21:13:22Z,IOS,1588.0,GOIBIBO,1.0,3.0,277.7
+customer_113,booking_127,Gurgaon,India,Chandigarh,India,2021-03-30T17:44:53Z,Desktop,3160.0,GOIBIBO,1.0,25.0,254.1
+customer_135,booking_13,Madhyamgram,India,Aizawl,India,2021-12-09T20:25:14Z,Desktop,4627.2,GOIBIBO,1.0,7.0,460.4
+customer_85,booking_102,Gurgaon,India,Doiwāla,India,2021-10-28T11:55:27Z,IOS,3936.0,GOIBIBO,1.0,5.0,206.8
+customer_199,booking_44,Gurgaon,India,Malé,Maldives,2020-11-03T11:40:07Z,Desktop,9891.67,MMT,1.0,1.0,2725.9
+customer_50,booking_28,Ahmedabad,India,Gurgaon,India,2020-02-05T16:08:14Z,Desktop,2980.21,MMT,1.0,8.0,747.8
+customer_223,booking_270,Delhi,India,Brussels,Belgium,2020-03-16T08:28:29Z,MobileWeb,30883.72,GOIBIBO,1.0,1.0,6701.5
+customer_220,booking_178,Delhi,India,Lucknow,India,2020-10-02T10:30:58Z,IOS,6702.4,YATRA,2.0,3.0,415.7
+customer_63,booking_1,Mumbai,India,Frankfurt am Main,Germany,2019-09-05T09:08:02Z,Android,42958.4,GOIBIBO,1.0,1.0,6815.2
+customer_36,booking_52,Rāja Sānsi,India,Fiumicino,Italy,2018-11-09T12:05:58Z,Desktop,74047.2,YATRA,3.0,9.0,5686.1
+customer_57,booking_84,Gurgaon,India,Fiumicino,Italy,2018-10-09T20:39:45Z,Desktop,22256.2,YATRA,1.0,3.0,6076.8
+customer_162,booking_279,Gurgaon,India,Frankfurt am Main,Germany,2019-09-01T21:20:47Z,Desktop,127120.0,GOIBIBO,2.0,68.0,6355.5
+customer_120,booking_151,Delhi,India,Jammu,India,2020-02-03T13:56:36Z,Desktop,4604.8,MMT,1.0,1.0,506.9
+customer_120,booking_299,Jammu,India,Dubai,United Arab Emirates,2020-02-13T18:16:04Z,Desktop,16753.73,YATRA,1.0,5.0,2076.5
+customer_213,booking_0,Delhi,India,Madhyamgram,India,2021-12-09T19:47:40Z,Desktop,8565.6,GOIBIBO,1.0,5.0,1306.4
+customer_218,booking_203,Gurgaon,India,Roissy-en-France,France,2022-03-15T19:58:39Z,IOS,127612.8,GOIBIBO,2.0,19.0,6564.2
+customer_266,booking_211,Gurgaon,India,Rāja Sānsi,India,2019-12-07T15:53:51Z,Android,4112.77,GOIBIBO,1.0,3.0,421.0
+customer_1,booking_115,Gurgaon,India,Guwahati,India,2020-03-02T11:50:51Z,IOS,7233.6,YATRA,1.0,11.0,1476.4
+customer_289,booking_75,Rāja Sānsi,India,Fiumicino,Italy,2018-09-25T16:19:23Z,Desktop,51982.4,YATRA,2.0,3.0,5686.1
+customer_12,booking_334,Surat,India,Frankfurt am Main,Germany,2021-09-12T17:03:25Z,IOS,34224.0,GOIBIBO,1.0,33.0,6394.6
+customer_84,booking_22,Gurgaon,India,Berlin,Germany,2020-03-08T12:22:28Z,Desktop,21738.4,YATRA,1.0,29.0,6008.3
+customer_198,booking_53,Gurgaon,India,Mohali,India,2020-12-03T10:26:01Z,Android,8092.0,MMT,2.0,0.0,248.6
+customer_160,booking_122,Patna,India,Gurgaon,India,2020-01-28T18:27:20Z,Desktop,6440.11,MMT,1.0,1.0,862.3
+customer_276,booking_234,Gurgaon,India,Berlin,Germany,2019-11-30T11:13:57Z,Desktop,34270.4,YATRA,1.0,55.0,6008.3
+customer_277,booking_45,Gurgaon,India,Barcelona,Spain,2020-02-07T17:48:16Z,MobileWeb,29000.8,YATRA,1.0,6.0,6975.4
+customer_8,booking_269,Gurgaon,India,Chennai,India,2020-01-31T06:33:08Z,IOS,8084.8,GOIBIBO,1.0,4.0,1742.4
+customer_13,booking_89,Surat,India,Devanhalli,India,2020-02-09T16:55:36Z,Desktop,8208.8,YATRA,1.0,1.0,1022.5
+customer_231,booking_202,Surat,India,Devanhalli,India,2020-02-09T16:52:56Z,Desktop,8208.8,YATRA,1.0,1.0,1022.5
+customer_301,booking_19,Devanhalli,India,Frankfurt am Main,Germany,2018-11-23T19:18:51Z,Desktop,29297.6,YATRA,1.0,101.0,7712.0
+customer_305,booking_324,Gurgaon,India,Paris,France,2020-01-18T05:57:50Z,IOS,22848.0,GOIBIBO,1.0,0.0,6869.5
+customer_64,booking_302,Bālāpur,India,Milan,Italy,2022-02-28T06:49:52Z,Desktop,36363.2,GOIBIBO,1.0,6.0,7043.5
+customer_156,booking_11,Ahmedabad,India,London,United Kingdom,2021-10-08T11:47:21Z,IOS,29635.38,GOIBIBO,1.0,4.0,6866.2
+customer_123,booking_73,Mumbai,India,Milan,Italy,2018-11-16T18:54:53Z,Android,23200.0,YATRA,1.0,1.0,6668.9
+customer_217,booking_194,Durlaga,India,Bhubaneswar,India,2021-09-10T19:12:36Z,Desktop,2176.0,GOIBIBO,1.0,56.0,260.5
+customer_103,booking_209,Mumbai,India,Ahmedabad,India,2020-02-03T12:54:03Z,Android,9560.8,MMT,4.0,218.0,441.3
+customer_98,booking_79,Gurgaon,India,Munich,Germany,2020-02-06T16:41:25Z,Desktop,31651.2,YATRA,1.0,2.0,6116.3
+customer_71,booking_150,Devanhalli,India,Frankfurt am Main,Germany,2019-10-17T14:23:52Z,Desktop,28219.2,GOIBIBO,1.0,51.0,7712.0
+customer_166,booking_182,Devanhalli,India,Frankfurt am Main,Germany,2021-06-26T08:58:06Z,Desktop,25555.2,GOIBIBO,1.0,1.0,7394.2
+customer_3,booking_80,Devanhalli,India,Roissy-en-France,France,2021-10-24T15:03:50Z,Android,29655.33,GOIBIBO,1.0,36.0,7822.2
+customer_44,booking_130,Gurgaon,India,Rāja Sānsi,India,2021-09-20T19:18:18Z,Android,2353.6,GOIBIBO,1.0,30.0,414.6
+customer_212,booking_193,Ranchi,India,Mumbai,India,2021-01-04T15:39:40Z,Desktop,16869.68,MMT,2.0,1.0,1374.8
+customer_125,booking_30,Gurgaon,India,Ranchi,India,2020-02-03T14:38:24Z,MobileWeb,3327.2,MMT,1.0,14.0,1006.6
+customer_167,booking_307,Gurgaon,India,Rome,Italy,2018-12-25T13:41:56Z,Desktop,66928.0,YATRA,4.0,3.0,6053.3
+customer_110,booking_232,Devanhalli,India,Dubai,United Arab Emirates,2020-11-03T16:08:42Z,Desktop,19604.92,YATRA,1.0,2.0,2698.1
+customer_24,booking_144,Madhyamgram,India,Rozenburg,Netherlands,2019-12-23T15:30:30Z,Desktop,57172.0,GOIBIBO,1.0,15.0,8086.1
+customer_205,booking_321,Hyderabad,India,Frankfurt am Main,Germany,2020-02-11T11:35:09Z,Desktop,59008.0,GOIBIBO,2.0,56.0,7408.9
+customer_216,booking_128,Kochi,India,Hamburg,Germany,2020-02-19T22:18:08Z,MobileWeb,72363.2,YATRA,2.0,55.0,7922.8
+customer_240,booking_311,Gurgaon,India,Frankfurt am Main,Germany,2020-02-29T08:36:47Z,IOS,29610.4,GOIBIBO,1.0,1.0,6355.5
+customer_270,booking_166,Varanasi,India,Pune,India,2021-06-27T18:04:19Z,Desktop,11727.73,GOIBIBO,1.0,7.0,1208.9
+customer_144,booking_173,Ahmedabad,India,Gwalior,India,2020-02-07T17:54:36Z,Desktop,16905.46,GOIBIBO,1.0,2.0,664.7
+customer_253,booking_170,Madhyamgram,India,Frankfurt am Main,Germany,2021-11-18T13:39:37Z,Desktop,38342.4,GOIBIBO,1.0,30.0,7389.7
+customer_2,booking_298,Kochi,India,Frankfurt am Main,Germany,2019-10-03T09:11:14Z,Desktop,24292.0,GOIBIBO,1.0,4.0,7891.8
+customer_139,booking_148,Devanhalli,India,Frankfurt am Main,Germany,2022-04-05T09:51:52Z,Desktop,75257.6,MMT,2.0,226.0,7394.2
+customer_97,booking_68,Gurgaon,India,Paris,France,2022-06-29T09:15:16Z,IOS,33274.4,MMT,1.0,88.0,6583.3
+customer_105,booking_231,Angamāli,India,Frankfurt am Main,Germany,2021-12-11T18:40:09Z,IOS,216646.4,GOIBIBO,2.0,13.0,7561.5
+customer_149,booking_126,Devanhalli,India,Oberding,Germany,2020-01-04T03:22:16Z,IOS,41512.0,YATRA,1.0,6.0,7402.5
+customer_127,booking_282,Chennai,India,London,United Kingdom,2020-01-20T17:19:18Z,Desktop,108567.31,YATRA,2.0,107.0,8681.2
+customer_170,booking_273,Mumbai,India,Gurgaon,India,2020-02-22T16:49:11Z,Desktop,2084.8,MMT,1.0,9.0,1125.8
+customer_180,booking_70,Rāja Sānsi,India,Fiumicino,Italy,2018-10-13T11:18:13Z,Desktop,25136.0,YATRA,1.0,1.0,5686.1
+customer_242,booking_265,Mumbai,India,Roissy-en-France,France,2018-09-21T16:47:29Z,MobileWeb,16419.2,YATRA,1.0,6.0,7288.0
+customer_51,booking_213,Gurgaon,India,Berlin,Germany,2019-12-29T12:54:25Z,Desktop,24458.4,GOIBIBO,1.0,44.0,6008.3
+customer_157,booking_51,Gurgaon,India,Frankfurt am Main,Germany,2019-12-16T16:58:53Z,Android,41137.6,GOIBIBO,1.0,52.0,6355.5
+customer_145,booking_98,Gurgaon,India,Bangalore,India,2020-03-05T03:24:13Z,IOS,8519.85,YATRA,1.0,0.0,1723.2
+customer_70,booking_274,Devanhalli,India,Madhyamgram,India,2020-09-03T13:42:50Z,Android,1402.4,GOIBIBO,1.0,3.0,1547.2
+customer_80,booking_315,New Delhi,India,Rāja Sānsi,India,2018-10-09T18:00:36Z,Desktop,5440.0,YATRA,2.0,18.0,414.6
+customer_256,booking_16,Gurgaon,India,Madrid,Spain,2019-10-06T09:57:55Z,IOS,22459.2,YATRA,1.0,9.0,7521.8
+customer_35,booking_40,Delhi,India,Varanasi,India,2020-11-08T01:16:17Z,Desktop,3157.6,YATRA,1.0,8.0,682.4
+customer_273,booking_260,Devanhalli,India,Frankfurt am Main,Germany,2022-07-01T08:28:24Z,IOS,36151.2,GOIBIBO,1.0,16.0,7394.2
+customer_172,booking_7,Gurgaon,India,Frankfurt am Main,Germany,2021-08-10T11:28:29Z,Desktop,117836.8,GOIBIBO,2.0,22.0,6112.5
+customer_102,booking_333,Rāja Sānsi,India,Frankfurt am Main,Germany,2021-04-15T12:22:18Z,Android,39508.8,GOIBIBO,1.0,3.0,5712.1
+customer_257,booking_83,Gurgaon,India,Roissy-en-France,France,2021-10-26T15:30:09Z,MobileWeb,22237.6,GOIBIBO,1.0,7.0,6564.2
+customer_168,booking_320,Chennai,India,Rozenburg,Netherlands,2021-12-03T07:04:34Z,Android,70506.4,GOIBIBO,1.0,7.0,7877.5
+customer_27,booking_47,Gurgaon,India,Frankfurt am Main,Germany,2020-11-16T16:16:55Z,Android,24518.4,YATRA,1.0,7.0,6114.5
+customer_29,booking_14,Bangalore,India,Munich,Germany,2020-02-27T07:33:56Z,MobileWeb,55371.2,YATRA,1.0,40.0,7433.2
+customer_10,booking_191,Delhi,India,Vizzola Ticino,Italy,2018-09-23T08:01:12Z,MobileWeb,19790.4,YATRA,1.0,8.0,6362.0
+customer_33,booking_198,Bikaner,India,Gurgaon,India,2021-03-14T05:54:13Z,IOS,9924.0,GOIBIBO,2.0,0.0,367.5
+customer_230,booking_3,Rāja Sānsi,India,Paris,France,2021-04-28T06:28:54Z,IOS,24619.2,GOIBIBO,1.0,11.0,6184.7
+customer_244,booking_221,Gurgaon,India,London,United Kingdom,2021-12-30T09:36:14Z,MobileWeb,88396.8,GOIBIBO,2.0,33.0,6708.3
+customer_67,booking_286,Devanhalli,India,Gurgaon,India,2020-10-15T14:51:12Z,Desktop,5971.63,YATRA,1.0,2.0,1694.7
+customer_86,booking_142,Rāja Sānsi,India,Fiumicino,Italy,2018-12-01T20:01:36Z,Desktop,50968.8,YATRA,2.0,1.0,5686.1
+customer_17,booking_24,Mumbai,India,Berlin,Germany,2018-11-23T18:28:48Z,MobileWeb,84799.69,YATRA,2.0,1.0,6527.2
+customer_49,booking_34,Gurgaon,India,Roissy-en-France,France,2019-09-03T17:32:57Z,IOS,66720.0,YATRA,1.0,3.0,6854.8
+customer_53,booking_155,Chennai,India,Paris,France,2021-12-23T17:36:19Z,Desktop,56648.0,GOIBIBO,1.0,17.0,8036.0
+customer_255,booking_145,Gurgaon,India,Bagdogra,India,2020-10-08T16:09:48Z,Android,7663.2,MMT,2.0,4.0,1128.9
+customer_302,booking_251,Madhyamgram,India,Kloten,Switzerland,2019-12-12T18:50:28Z,IOS,60580.16,YATRA,1.0,3.0,7772.0
+customer_45,booking_337,Devanhalli,India,Frankfurt am Main,Germany,2020-02-26T15:51:08Z,Android,35420.0,YATRA,1.0,18.0,7712.0
+customer_206,booking_254,Delhi,India,Paris,France,2018-11-12T14:04:00Z,Desktop,20372.92,YATRA,1.0,15.0,6870.7
+customer_134,booking_160,Ferokh,India,Dubai,United Arab Emirates,2018-10-17T18:45:04Z,Desktop,12078.51,YATRA,1.0,1.0,2675.5
+customer_19,booking_135,Gurgaon,India,Rāja Sānsi,India,2021-09-09T18:28:05Z,Desktop,4696.0,GOIBIBO,1.0,2.0,414.6
+customer_291,booking_332,Gurgaon,India,Rāja Sānsi,India,2021-11-11T20:39:48Z,Android,6376.8,GOIBIBO,1.0,2.0,414.6
+customer_88,booking_171,Bhubaneswar,India,Devanhalli,India,2019-11-29T07:57:13Z,IOS,6791.2,GOIBIBO,1.0,2.0,1167.5
+customer_250,booking_247,Gurgaon,India,Hamburg,Germany,2020-07-21T16:34:39Z,IOS,34355.2,MMT,1.0,30.0,6008.2
+customer_151,booking_308,Gurgaon,India,Valencia,Spain,2021-03-05T03:50:13Z,IOS,140726.4,GOIBIBO,3.0,11.0,7027.2
+customer_97,booking_90,Gurgaon,India,Dharamsala,India,2022-02-25T09:09:13Z,IOS,5126.4,GOIBIBO,1.0,14.0,416.6
+customer_290,booking_208,Gurgaon,India,Berlin,Germany,2019-08-03T17:45:40Z,Desktop,26080.0,GOIBIBO,1.0,163.0,6008.3
+customer_288,booking_248,Gurgaon,India,Rome,Italy,2019-10-22T22:35:59Z,Android,45982.4,YATRA,2.0,2.0,6053.3
+customer_155,booking_54,Gurgaon,India,Varanasi,India,2020-01-21T21:13:42Z,IOS,4555.2,YATRA,1.0,6.0,688.7
+customer_182,booking_210,Devanhalli,India,Chennai,India,2021-06-14T18:29:06Z,Desktop,9936.8,GOIBIBO,1.0,16.0,279.7
+customer_230,booking_61,Gurgaon,India,Paris,France,2022-05-22T09:22:02Z,IOS,57776.8,GOIBIBO,3.0,18.0,6583.3
+customer_191,booking_112,Mumbai,India,Frankfurt am Main,Germany,2020-02-14T17:14:51Z,Desktop,27831.2,GOIBIBO,1.0,68.0,6815.2
+customer_158,booking_93,Gurgaon,India,Frankfurt am Main,Germany,2019-07-25T19:50:05Z,Desktop,105120.0,GOIBIBO,2.0,29.0,6355.5
+customer_87,booking_103,Agartala,India,Gurgaon,India,2022-01-17T19:13:01Z,IOS,8001.51,GOIBIBO,1.0,1.0,1501.4
+customer_196,booking_138,Lucknow,India,Frankfurt am Main,Germany,2020-11-13T18:41:19Z,Desktop,28178.4,YATRA,1.0,9.0,6516.2
+customer_238,booking_180,Gurgaon,India,Frankfurt am Main,Germany,2022-02-22T08:56:26Z,IOS,35132.0,GOIBIBO,2.0,23.0,6121.0
+customer_194,booking_57,Devanhalli,India,Frankfurt am Main,Germany,2022-04-18T18:08:57Z,IOS,99294.4,MMT,2.0,81.0,7394.2
+customer_31,booking_77,Rāja Sānsi,India,Roissy-en-France,France,2020-12-14T06:28:29Z,IOS,50198.4,GOIBIBO,1.0,20.0,6169.6
+customer_275,booking_252,Gurgaon,India,Schönefeld,Germany,2022-06-29T10:51:14Z,Android,33786.4,GOIBIBO,1.0,4.0,5771.1
+customer_47,booking_264,Delhi,India,Naples,Italy,2018-10-18T16:09:48Z,Desktop,22732.8,YATRA,1.0,9.0,5911.6
+customer_90,booking_118,Gurgaon,India,Warsaw,Poland,2019-12-10T20:26:45Z,Android,33235.12,YATRA,1.0,40.0,5433.3
+customer_300,booking_243,Gurgaon,India,Ban Khlong Bang Sao Thong,Thailand,2020-01-27T10:34:07Z,IOS,7565.62,MMT,1.0,10.0,2969.6
+customer_181,booking_158,Ahmedabad,India,Gurgaon,India,2020-05-20T14:34:04Z,Android,2309.6,MMT,1.0,15.0,747.6
+customer_52,booking_242,Mumbai,India,Gurgaon,India,2021-01-28T20:24:52Z,Desktop,5958.56,MMT,1.0,7.0,1125.5
+customer_69,booking_235,Gurgaon,India,Ranchi,India,2020-02-15T07:25:11Z,Desktop,6330.81,MMT,1.0,3.0,1006.6
+customer_21,booking_17,Gurgaon,India,El Prat de Llobregat,Spain,2020-06-08T19:00:01Z,Android,31466.4,GOIBIBO,1.0,27.0,6771.8
+customer_152,booking_123,Gurgaon,India,Paris,France,2021-02-25T05:48:53Z,IOS,23209.6,GOIBIBO,1.0,17.0,6585.2
+customer_237,booking_172,Thiruvananthapuram,India,London,United Kingdom,2021-10-21T05:47:35Z,IOS,81499.86,GOIBIBO,1.0,79.0,8375.4
+customer_28,booking_314,Madhyamgram,India,Frankfurt am Main,Germany,2022-06-01T16:12:55Z,Desktop,56064.8,GOIBIBO,1.0,19.0,7380.7
+customer_265,booking_281,Gurgaon,India,Roissy-en-France,France,2019-12-21T15:15:03Z,Android,24072.0,GOIBIBO,1.0,9.0,6854.8
+customer_239,booking_262,Gurgaon,India,Kolkata,India,2020-09-10T07:01:34Z,IOS,5291.52,YATRA,1.0,3.0,1312.1
+customer_236,booking_60,Devanhalli,India,Frankfurt am Main,Germany,2019-09-23T10:34:00Z,Desktop,55176.0,GOIBIBO,1.0,1.0,7712.0
+customer_252,booking_199,Mumbai,India,Berlin,Germany,2020-11-18T12:28:13Z,Desktop,59976.0,GOIBIBO,2.0,102.0,6286.5
+customer_214,booking_207,Gurgaon,India,Berlin,Germany,2020-08-18T19:17:17Z,Android,27901.6,GOIBIBO,1.0,17.0,5780.3
+customer_200,booking_292,Varanasi,India,Delhi,India,2020-11-08T20:39:54Z,Desktop,2800.8,MMT,1.0,9.0,682.4
+customer_189,booking_161,Mumbai,India,Gurgaon,India,2021-04-17T17:01:43Z,Desktop,4930.88,MMT,1.0,11.0,1125.5
+customer_107,booking_276,Devanhalli,India,Kolkata,India,2021-02-02T18:42:26Z,Desktop,11035.08,MMT,2.0,1.0,1531.5
+customer_245,booking_27,Gurgaon,India,Mumbai,India,2020-01-28T14:16:19Z,Android,6947.26,MMT,1.0,1.0,1125.8
+customer_169,booking_267,Chennai,India,Madurai,India,2022-03-28T07:59:09Z,IOS,6752.0,GOIBIBO,1.0,14.0,422.5
+customer_176,booking_174,Gurgaon,India,Frankfurt am Main,Germany,2021-11-02T14:54:40Z,Desktop,66385.6,GOIBIBO,1.0,75.0,6112.5
+customer_153,booking_175,Gurgaon,India,Agartala,India,2022-04-18T15:42:14Z,Android,11988.83,GOIBIBO,1.0,3.0,1501.4
+customer_91,booking_266,Chennai,India,Roissy-en-France,France,2020-02-17T11:05:49Z,Android,43364.8,GOIBIBO,2.0,77.0,8416.0
+customer_163,booking_179,Rāja Sānsi,India,Gurgaon,India,2019-12-20T02:45:01Z,Android,7080.32,GOIBIBO,2.0,24.0,421.0
+customer_281,booking_326,Chennai,India,Frankfurt am Main,Germany,2022-01-22T02:31:28Z,Desktop,54024.8,GOIBIBO,1.0,4.0,7586.2
+customer_54,booking_49,Chennai,India,Roissy-en-France,France,2021-10-14T09:28:31Z,IOS,50838.4,GOIBIBO,1.0,14.0,8019.5
+customer_126,booking_120,New Delhi,India,Manchester,United Kingdom,2018-12-18T23:02:22Z,IOS,18981.19,YATRA,1.0,42.0,7212.6
+customer_4,booking_309,Delhi,India,Brussels,Belgium,2018-11-21T13:57:09Z,IOS,37457.6,YATRA,2.0,9.0,6701.5
+customer_217,booking_162,Durlaga,India,Bhubaneswar,India,2021-09-10T21:30:45Z,Desktop,2176.0,GOIBIBO,1.0,61.0,260.5
+customer_192,booking_253,Mohali,India,Mumbai,India,2020-02-10T05:54:25Z,Android,20895.4,MMT,3.0,10.0,1347.5
+customer_136,booking_330,Gurgaon,India,Rome,Italy,2019-10-08T08:40:23Z,IOS,24304.8,YATRA,1.0,2.0,6053.3
+customer_93,booking_223,Bālāpur,India,Düsseldorf,Germany,2019-12-08T11:33:11Z,IOS,41835.2,YATRA,1.0,127.0,7591.8
+customer_295,booking_304,Mumbai,India,Frankfurt am Main,Germany,2022-07-06T16:15:47Z,Desktop,83867.2,GOIBIBO,2.0,46.0,6561.8
+customer_190,booking_9,Angamāli,India,Newcastle upon Tyne,United Kingdom,2019-12-08T18:26:00Z,IOS,95426.07,GOIBIBO,3.0,46.0,8843.6
+customer_209,booking_92,Gurgaon,India,Paris,France,2021-04-09T12:37:45Z,Desktop,21871.2,GOIBIBO,1.0,43.0,6585.2
+customer_226,booking_87,Bālāpur,India,Frankfurt am Main,Germany,2021-04-15T05:48:25Z,IOS,58964.0,GOIBIBO,1.0,2.0,7106.7
+customer_297,booking_258,Gurgaon,India,Tiruchi,India,2020-03-16T23:54:50Z,Android,10568.8,GOIBIBO,1.0,1.0,1970.8
+customer_173,booking_205,Gurgaon,India,London,United Kingdom,2020-02-15T15:44:37Z,IOS,27881.6,GOIBIBO,1.0,13.0,7055.3
+customer_160,booking_278,Gurgaon,India,Patna,India,2020-01-28T16:35:05Z,Desktop,5232.6,MMT,1.0,2.0,862.3
+customer_108,booking_195,Gurgaon,India,Faro,Portugal,2019-12-14T15:12:14Z,IOS,61050.4,GOIBIBO,2.0,8.0,8003.0
+customer_79,booking_41,Gurgaon,India,Roissy-en-France,France,2022-03-11T20:43:32Z,IOS,25857.6,GOIBIBO,1.0,18.0,6564.2
+customer_247,booking_48,Rāja Sānsi,India,Gurgaon,India,2021-11-09T04:04:49Z,Android,5707.2,GOIBIBO,1.0,23.0,414.6
+customer_106,booking_116,Chennai,India,Coimbatore,India,2022-01-21T15:17:42Z,Desktop,3816.8,GOIBIBO,1.0,6.0,429.4
+customer_299,booking_6,Mumbai,India,Luqa,Malta,2019-11-16T19:05:48Z,IOS,29965.6,GOIBIBO,1.0,5.0,6056.1
+customer_33,booking_187,Gurgaon,India,Berlin,Germany,2019-11-07T14:50:11Z,IOS,20759.2,GOIBIBO,1.0,2.0,6008.3
+customer_14,booking_216,Gurgaon,India,Düsseldorf,Germany,2019-07-29T20:33:06Z,Desktop,47520.0,YATRA,2.0,139.0,6510.0
+customer_304,booking_237,Pune,India,Varanasi,India,2020-12-22T18:30:43Z,MobileWeb,12201.53,MMT,2.0,3.0,1208.9
+customer_32,booking_96,Nagpur,India,Ahmedabad,India,2021-01-03T15:43:58Z,Desktop,3965.39,MMT,1.0,1.0,700.0
+customer_67,booking_328,Devanhalli,India,Gurgaon,India,2020-10-15T14:43:32Z,Desktop,5635.73,MMT,1.0,2.0,1694.7
+customer_133,booking_238,Gurgaon,India,Rāja Sānsi,India,2020-02-14T14:20:20Z,IOS,2721.6,YATRA,1.0,26.0,421.0
+customer_235,booking_37,Gurgaon,India,Bhubaneswar,India,2020-03-21T06:40:56Z,Android,6552.0,GOIBIBO,1.0,0.0,1274.7
+customer_62,booking_239,Gurgaon,India,Birmingham,United Kingdom,2020-01-31T20:35:35Z,Desktop,126502.46,GOIBIBO,2.0,109.0,7190.9
+customer_5,booking_131,Mumbai,India,Kloten,Switzerland,2018-10-11T14:31:28Z,Desktop,55152.8,YATRA,2.0,22.0,6760.0
+customer_241,booking_336,Gurgaon,India,Amsterdam,Netherlands,2022-07-11T18:46:59Z,Desktop,41117.6,GOIBIBO,1.0,20.0,6354.9
