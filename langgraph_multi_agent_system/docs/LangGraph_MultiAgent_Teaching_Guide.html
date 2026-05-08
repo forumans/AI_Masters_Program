@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>LangGraph Multi-Agent System — Teaching Guide</title>
+<style>
+  body {
+    font-family: Calibri, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    max-width: 820px;
+    margin: 40px auto;
+    color: #1a1a1a;
+  }
+  h1 { font-size: 22pt; color: #1F3864; border-bottom: 2px solid #1F3864; padding-bottom: 6px; margin-top: 30px; }
+  h2 { font-size: 16pt; color: #2E5090; margin-top: 28px; }
+  h3 { font-size: 13pt; color: #2E5090; margin-top: 18px; }
+  h4 { font-size: 11pt; color: #1a1a1a; margin-top: 14px; }
+  pre {
+    background: #F2F2F2;
+    border-left: 4px solid #2E5090;
+    padding: 12px 16px;
+    font-family: Consolas, Courier New, monospace;
+    font-size: 9.5pt;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 10px 0;
+  }
+  code {
+    font-family: Consolas, Courier New, monospace;
+    font-size: 9.5pt;
+    background: #F2F2F2;
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 14px 0;
+    font-size: 10.5pt;
+  }
+  th {
+    background: #1F3864;
+    color: white;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  td {
+    padding: 7px 12px;
+    border: 1px solid #CCCCCC;
+  }
+  tr:nth-child(even) td { background: #F7F9FC; }
+  blockquote {
+    background: #EBF3FB;
+    border-left: 4px solid #2E5090;
+    padding: 10px 16px;
+    margin: 14px 0;
+    font-style: italic;
+  }
+  ul, ol { margin: 8px 0 8px 24px; }
+  li { margin-bottom: 4px; }
+  .subtitle { font-size: 13pt; color: #555; margin-top: -10px; margin-bottom: 20px; }
+  .divider { border: none; border-top: 1px solid #CCCCCC; margin: 24px 0; }
+</style>
+</head>
+<body>
+
+<h1>LangGraph Multi-Agent System</h1>
+<p class="subtitle">A Beginner's Teaching Guide — Architecture, Features &amp; Concepts</p>
+
+<hr class="divider">
+
+<h2>Text vs. Video?</h2>
+<p><strong>Both, in sequence.</strong> The best learning path is:</p>
+<ol>
+  <li><strong>Read a simple analogy first</strong> (text) — builds the mental model</li>
+  <li><strong>Watch the code run</strong> (live demo/video) — makes it concrete</li>
+  <li><strong>Read the code yourself</strong> (text) — reinforces understanding</li>
+</ol>
+<p>This document is the "lecture" before you watch the demo.</p>
+
+<hr class="divider">
+
+<h1>The Real-World Analogy: A Hospital</h1>
+<p>Forget finance for a moment. Imagine a <strong>hospital emergency room</strong>.</p>
+<ul>
+  <li>A <strong>patient walks in</strong> with symptoms — the user's request</li>
+  <li>The <strong>triage nurse</strong> reads the symptoms and decides which doctors are needed — the router</li>
+  <li>The <strong>hospital coordinator</strong> schedules and sequences the doctors — the orchestrator</li>
+  <li>Each <strong>doctor</strong> examines the patient independently — the agents</li>
+  <li>A <strong>shared patient chart</strong> is updated after every doctor visit — the state</li>
+  <li><strong>Hospital safety rules</strong> ensure no doctor is overwhelmed — resilience</li>
+  <li><strong>Audit logs</strong> record every action for accountability — monitoring</li>
+</ul>
+<p>This entire project is that hospital — but for financial questions.</p>
+
+<hr class="divider">
+
+<h1>1. Business Functionality</h1>
+<p><strong>What does this system actually do?</strong></p>
+<p>A user asks a financial question. The system routes it to the right AI specialists:</p>
+<pre>"Should I buy AAPL stock, and what are the tax implications
+ on my $100k portfolio with moderate risk tolerance?"
+         │
+         ├──► Equity Agent  → "AAPL looks bullish. BUY with 80% confidence."
+         ├──► Tax Agent     → "Selling triggers short-term gains. Hold 1 year to save ~$3,000."
+         └──► Risk Agent    → "Your portfolio is moderately aggressive. Consider bonds."</pre>
+<p>The user gets <strong>three expert opinions</strong> in one call. This is the business value.</p>
+
+<hr class="divider">
+
+<h1>2. Orchestration — "The Hospital Coordinator"</h1>
+<p><strong>File:</strong> <code>src/orchestrator_langgraph.py</code></p>
+<p>The orchestrator is the <strong>traffic controller</strong>. It doesn't do any analysis itself — it just manages the flow:</p>
+<pre>Step 1: Receive the request
+Step 2: Create a shared "notepad" (state) for all agents to read/write
+Step 3: Ask the router → "Which agents do we need?"
+Step 4: Call Agent 1, wait for result, save it to the notepad
+Step 5: Call Agent 2, wait for result, save it
+Step 6: Call Agent 3, wait for result, save it
+Step 7: Bundle all results → return to user</pre>
+<p>The key tool it uses is LangGraph's <strong>StateGraph</strong> — think of it as a flowchart you can execute in code:</p>
+<pre>workflow = StateGraph(AgentState)       # Create the flowchart
+workflow.add_node("equity_expert", ...) # Add a box
+workflow.add_node("tax_expert", ...)    # Add another box
+workflow.add_edge("equity_expert", ...) # Draw an arrow between boxes
+compiled = workflow.compile()           # Lock it in
+result = compiled.invoke(initial_state) # Run it</pre>
+
+<hr class="divider">
+
+<h1>3. State Management — "The Shared Notepad"</h1>
+<p><strong>File:</strong> <code>src/models/langgraph_state.py</code></p>
+<p>Imagine every doctor in the hospital shares <strong>one patient chart</strong>. Doctor A writes their findings, Doctor B reads them before seeing the patient. That chart is <code>AgentState</code>.</p>
+<pre>AgentState = {
+    "request":       { who asked, what they want },   # Written once at start
+    "workflow_type": "COMPREHENSIVE_ANALYSIS",         # Written once by router
+    "agent_results": {                                 # Each agent writes here
+        "equity_expert": { "recommendation": "BUY" },
+        "tax_expert":    { "advice": "Hold 1 year" },
+        "risk_expert":   { "score": 6.2 }
+    },
+    "status":  "RUNNING → COMPLETED",                 # Updated as we go
+    "errors":  []                                      # Any failures logged here
+}</pre>
+<p><strong>Why not just pass data directly agent-to-agent?</strong><br>
+Because agents don't know about each other. The state is the only thing they share. This keeps them independent — you can add, remove, or swap agents without changing anything else.</p>
+<p><strong>Checkpointing</strong> means LangGraph saves this state after every step to memory. If something crashes, you can see exactly where it stopped. Advanced: you can rewind to any checkpoint and re-run from that point.</p>
+
+<hr class="divider">
+
+<h1>4. Deterministic Routing — "The Triage Nurse's Rulebook"</h1>
+<p><strong>File:</strong> <code>src/workflows/deterministic_router.py</code></p>
+<p>This is the <strong>most important design decision</strong> in the whole project.</p>
+
+<h3>The Bad Way (standard LangGraph)</h3>
+<pre>Ask the AI: "What should we do next?"
+AI says: "Call the equity agent"        ← maybe right
+AI says: "Call the equity agent again"  ← wrong, loops forever</pre>
+
+<h3>The Good Way (this project)</h3>
+<pre># Simple Python rules — always correct, always predictable
+if has_stocks and has_tax and has_risk:
+    return COMPREHENSIVE_ANALYSIS    # → call all 3 agents
+
+elif has_stocks and has_risk:
+    return PORTFOLIO_REVIEW          # → call equity + risk
+
+elif has_stocks:
+    return EQUITY_ANALYSIS           # → call equity only</pre>
+
+<p>No AI involved in routing. <strong>It's just an if-statement.</strong> The routing decision is made once at the start based on what's in the request. After that, the orchestrator just ticks agents off a checklist.</p>
+<p>The pre-defined checklists live here:</p>
+<pre>WORKFLOW_DEFINITIONS = {
+    WorkflowType.COMPREHENSIVE_ANALYSIS: [
+        "equity_expert",   # Step 1
+        "tax_expert",      # Step 2
+        "risk_expert"      # Step 3
+    ]
+}</pre>
+
+<hr class="divider">
+
+<h1>5. The Agents — "The Specialist Doctors"</h1>
+<p><strong>Files:</strong> <code>src/agents/</code></p>
+<p>Each agent follows the same pattern — like doctors who all went to the same medical school:</p>
+<pre>class EquityAgent(BaseLangGraphAgent):
+
+    def validate_input(self, state):
+        # "Do I have what I need to do my job?"
+        return state["request"].stocks is not None
+
+    def get_system_prompt(self):
+        # "What kind of expert am I?"
+        return "You are a senior equity analyst at a top investment bank..."
+
+    def process_request(self, state):
+        # "Here's my analysis"
+        # Builds a prompt, calls OpenAI, returns structured result
+        response = self.llm.invoke(prompt)
+        return { "recommendation": "BUY", "confidence": 0.85 }</pre>
+
+<p>The <strong>base class</strong> (<code>base_agent.py</code>) handles everything else automatically:</p>
+<ul>
+  <li>Calling the LLM</li>
+  <li>Retrying if it fails</li>
+  <li>Timing out if it takes too long</li>
+  <li>Recording how long it took</li>
+  <li>Logging input and output</li>
+</ul>
+<p>The specialist agents only care about <strong>their domain</strong> — they don't think about retries or timeouts at all.</p>
+
+<hr class="divider">
+
+<h1>6. Resilience — "The Hospital Safety Rules"</h1>
+<p><strong>File:</strong> <code>src/utils/resilience.py</code></p>
+<p>Three patterns protect the system from failures:</p>
+
+<h3>Circuit Breaker — "Stop calling a doctor who's unavailable"</h3>
+<pre>Normal: call OpenAI → works ✅
+        call OpenAI → works ✅
+        call OpenAI → fails ❌
+        call OpenAI → fails ❌
+        call OpenAI → fails ❌  →  CIRCUIT OPENS
+
+Circuit open: call OpenAI → BLOCKED immediately ⛔ (don't even try)
+              wait 30 seconds...
+              one test call → works ✅ → CIRCUIT CLOSES → back to normal</pre>
+<p>Without this, every request waits for the full 30-second timeout when OpenAI is down. With it, failures are instant and the system recovers automatically.</p>
+
+<h3>Retry with Backoff — "Try again, but wait a bit"</h3>
+<pre>Attempt 1 → fails (network blip) → wait 1 second
+Attempt 2 → fails (still flaky)  → wait 2 seconds
+Attempt 3 → succeeds ✅</pre>
+<p>Most temporary failures fix themselves within seconds. Retrying silently handles them.</p>
+
+<h3>Timeout — "Don't wait forever"</h3>
+<pre>Agent call starts → 30 seconds pass → cancelled → error returned</pre>
+<p>Without timeouts, one stuck API call blocks the entire workflow indefinitely.</p>
+
+<hr class="divider">
+
+<h1>7. Monitoring — "The Audit Trail"</h1>
+<p><strong>File:</strong> <code>src/utils/monitoring.py</code></p>
+<p>Every significant event is logged as structured JSON:</p>
+<pre>{ "event": "agent_started",   "agent": "equity_expert", "timestamp": "10:30:00" }
+{ "event": "agent_completed", "agent": "equity_expert", "execution_time": 2.3 }
+{ "event": "agent_started",   "agent": "tax_expert",    "timestamp": "10:30:02" }</pre>
+
+<h3>Why structured JSON instead of plain text?</h3>
+<table>
+  <tr><th>Plain Text</th><th>Structured JSON</th></tr>
+  <tr><td>"Equity agent finished"</td><td>{ "agent": "equity_expert", "execution_time": 2.3 }</td></tr>
+  <tr><td>Can't search or analyze</td><td>Can query, filter, aggregate, chart</td></tr>
+</table>
+
+<p>With structured logs you can answer questions like:</p>
+<ul>
+  <li><em>Which agent is slowest on average?</em></li>
+  <li><em>How often does the risk agent fail?</em></li>
+  <li><em>What was happening when user X got an error?</em></li>
+</ul>
+<p>Metrics (counts and timings) are also collected in Prometheus format — tools like Grafana can visualize these as live dashboards.</p>
+
+<hr class="divider">
+
+<h1>The Big Picture — How It All Connects</h1>
+<pre>User Request
+    │
+    ▼  [Pydantic validates: is this data valid?]
+    │
+    ▼  [Router: what type of workflow is this?]    ← deterministic_router.py
+    │
+    ▼  [Orchestrator creates State, runs graph]    ← orchestrator_langgraph.py
+    │
+    ├──► Agent 1                                   ← agents/equity_agent.py
+    │       ├── validate input
+    │       ├── call OpenAI  ← protected by circuit breaker + retry + timeout
+    │       ├── write result to State
+    │       └── log everything
+    │
+    ├──► Agent 2 (reads State, writes State)
+    ├──► Agent 3 (reads State, writes State)
+    │
+    ▼  [State checkpointed at every step]          ← LangGraph
+    │
+    ▼  [Final result formatted and returned]</pre>
+
+<hr class="divider">
+
+<h1>The Learning Journey</h1>
+<p>Start here, in this order:</p>
+<table>
+  <tr><th>Step</th><th>Read</th><th>What You'll Learn</th></tr>
+  <tr><td>1</td><td><code>src/models/langgraph_state.py</code></td><td>What data flows through the system</td></tr>
+  <tr><td>2</td><td><code>src/models/request_models.py</code></td><td>How user input is validated</td></tr>
+  <tr><td>3</td><td><code>src/workflows/deterministic_router.py</code></td><td>How routing decisions are made</td></tr>
+  <tr><td>4</td><td><code>src/agents/base_agent.py</code></td><td>The pattern all agents follow</td></tr>
+  <tr><td>5</td><td><code>src/agents/equity_agent.py</code></td><td>A simple concrete agent</td></tr>
+  <tr><td>6</td><td><code>src/orchestrator_langgraph.py</code></td><td>How the graph is built and run</td></tr>
+  <tr><td>7</td><td><code>src/utils/resilience.py</code></td><td>How failures are handled</td></tr>
+  <tr><td>8</td><td><code>test_workflow.py</code></td><td><strong>Run this and watch it all work</strong></td></tr>
+</table>
+
+<blockquote>
+  <strong>The single most valuable thing you can do:</strong> run <code>test_workflow.py</code>, then read the logs it produces. Every concept above will click immediately when you see it live.
+</blockquote>
+
+</body>
+</html>
