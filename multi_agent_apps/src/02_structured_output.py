@@ -1,3 +1,16 @@
+"""
+LLM Structured Output Example
+
+This example demonstrates how to use structured output with an LLM.
+Process:
+1. Define a Pydantic model that represents the structure of the output.
+2. Create an LLM instance.
+3. Use the with_structured_output() method of LLM object to bind the model to the LLM.
+4. Create a prompt and chain the prompt and structured LLM
+5. Invoke the chain with the input text.
+6. LLM would process and extracts the data in a JSON format and then LangChain would parse and populate the Pydantic model.
+"""
+
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field

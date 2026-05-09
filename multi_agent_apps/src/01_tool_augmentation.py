@@ -1,5 +1,9 @@
 """
-Tool Augmentation Example
+LLM Tool Calling Example
+
+This example demonstrates how to augment an LLM with custom tools.
+
+Use bind_tools() method of LLM object to bind the tools.
 """
 
 import os
