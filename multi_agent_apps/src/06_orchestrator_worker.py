@@ -255,10 +255,10 @@ def synthesizer(overall_state: OverallState) -> OverallState:
 
 # Conditional edge function to dynamically create workers and dispatch them
 def create_conditional_workers(state: OverallState) -> str:
-   print(f"Creating conditional workers for {len(state['sub_topics'])} subtopics, and dispatching dynamically.")
+    print(f"Creating conditional workers for {len(state['sub_topics'])} subtopics, and dispatching dynamically.")
 
-   # For each subtopic from the OverallState, build a Worker node state, add it to a list, and send that list for execution
-   return [
+    # For each subtopic from the OverallState, build a Worker node state, add it to a list, and send that list for execution
+    return [
     Send("research_worker", {
         "subtopic": one_subtopic,
         "worker_id": i + 1,
