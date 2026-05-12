@@ -2,204 +2,157 @@
 
 ## Overview
 
-The AutoGen Intelligent Feedback Analysis System uses Microsoft AutoGen framework to create a multi-agent system for processing user feedback through conversational agent orchestration.
+The system uses a hybrid architecture:
+- local Python classes perform the end-to-end feedback analysis pipeline
+- AutoGen agents provide LLM-backed specialist reasoning when available
+- AutoGen group chat coordinates the run and produces summaries in AutoGen mode
 
-## System Architecture
+This design keeps the pipeline runnable even when AutoGen configuration is missing or an LLM response is unusable.
 
-### Multi-Agent Design
+## Core Architecture
 
-The system employs 6 specialized agents coordinated through AutoGen's GroupChat mechanism:
+### Local Processing Pipeline
 
-#### 1. CSV Reader Agent
-- **Purpose**: Reads and validates feedback data from CSV files
-- **Input**: App store reviews, support emails
-- **Output**: Combined feedback DataFrame
-- **Key Features**:
-  - Data validation
-  - Missing column handling
-  - Data quality checks
+The main execution path lives in [`src/orchestration/autogen_manager.py`](../src/orchestration/autogen_manager.py).
 
-#### 2. Feedback Classifier Agent
-- **Purpose**: Categorizes feedback using LLM analysis
-- **Categories**: Bug, Feature Request, Praise, Complaint, Spam
-- **Approach**: AutoGen LLM agent with rule-based fallback
-- **Output**: Classification with confidence scores
+Shared pipeline stages:
+1. Read feedback data
+2. Validate dataset structure
+3. Classify all feedback items
+4. Run bug analysis for items classified as `Bug`
+5. Run feature extraction for items classified as `Feature Request`
+6. Merge analysis results
+7. Create structured tickets
+8. Review ticket quality
+9. Save CSV and JSON outputs
 
-#### 3. Bug Analysis Agent
-- **Purpose**: Analyzes bug reports for technical details
-- **Analysis**: Severity, category, device info, reproduction steps
-- **Output**: Structured bug analysis with technical insights
+### Specialist Components
 
-#### 4. Feature Extractor Agent
-- **Purpose**: Extracts and analyzes feature requests
-- **Analysis**: Priority, impact, target users, benefits
-- **Output**: Feature assessment with implementation complexity
+#### CSVReaderAgent
+- Reads CSV inputs
+- Normalizes both sources into a common schema
+- Validates required fields
+- This is not a conversational AutoGen agent
 
-#### 5. Ticket Creator Agent
-- **Purpose**: Generates structured tickets from analyzed feedback
-- **Output**: Complete tickets with assignees, effort estimates
-- **Features**: Auto-ticket ID generation, priority assignment
+#### FeedbackClassifierAgent
+- Uses AutoGen classification when available
+- Falls back to keyword-based classification on failure
+- Produces category, confidence, and reasoning
 
-#### 6. Quality Critic Agent
-- **Purpose**: Reviews and validates ticket quality
-- **Metrics**: Completeness, accuracy, clarity, relevance, actionability
-- **Output**: Quality scores and improvement suggestions
+#### BugAnalysisAgent
+- Uses AutoGen analysis when available
+- Falls back to rule-based severity/category extraction
+- Produces severity, bug category, device info, reproduction steps, and error message
 
-### AutoGen GroupChat Orchestration
+#### FeatureExtractorAgent
+- Uses AutoGen analysis when available
+- Falls back to rule-based feature extraction
+- Produces feature category, priority, impact, complexity, target users, and benefits
 
-#### Group Chat Participants
-```
-GroupChat Participants:
-├── Coordinator Agent (orchestrates process)
-├── Data Processor Agent (handles data operations)
-├── Bug Analyzer Agent (specialized bug analysis)
-├── Feature Extractor Agent (specialized feature extraction)
-├── Ticket Creator Agent (specialized ticket creation)
-├── Quality Reviewer Agent (specialized quality assessment)
-└── User Proxy Agent (human interface)
-```
+#### TicketCreatorAgent
+- Uses AutoGen ticket generation when available
+- Falls back to rule-based ticket construction
+- Produces structured ticket records with IDs, labels, assignee, and effort
 
-#### Conversation Flow
-1. **Coordinator** initiates analysis with data requirements
-2. **Data Processor** reads and validates feedback data
-3. **Coordinator** delegates classification task
-4. **Feedback Classifier** processes and categorizes feedback
-5. **Coordinator** routes bugs to Bug Analyzer, features to Feature Extractor
-6. **Specialized agents** perform deep analysis
-7. **Ticket Creator** generates structured tickets
-8. **Quality Reviewer** assesses ticket quality
-9. **Coordinator** summarizes results and provides insights
+#### QualityCriticAgent
+- Uses AutoGen quality review when available
+- Falls back to rule-based scoring
+- Produces quality scores, issues, suggestions, and manual-review flags
 
-#### Fallback Mechanism
-- **AutoGen Mode**: Group chat orchestration (primary)
-- **Direct Mode**: Sequential agent calls (fallback)
-- **Rule-based**: Keyword analysis when LLM fails
+## AutoGen Orchestration
 
-### Processing Pipeline
+### Group Chat Participants
 
-#### AutoGen Mode (Group Chat)
-```
-Input Data → Coordinator → Data Processor → Classifier → Specialized Agents → Ticket Creator → Quality Reviewer → Output
-```
+The group chat defined in `AutoGenFeedbackAnalysisSystem` includes:
+- `coordinator`
+- `data_processor`
+- `feedback_classifier`
+- `bug_analyzer`
+- `feature_extractor`
+- `ticket_creator`
+- `quality_reviewer`
+- `user_proxy`
 
-#### Direct Mode (Fallback)
-```
-Input Data → CSV Reader → Classifier → Bug/Feature Analysis → Ticket Creator → Quality Reviewer → Output
-```
+### What AutoGen Mode Does
 
-## Configuration
+When `process_feedback(use_autogen=True)` is used:
+1. The system loads and validates the feedback data locally.
+2. A group chat stage is used to coordinate the run at a planning level.
+3. The shared Python pipeline performs classification, analysis, ticketing, and quality review.
+4. A second group chat stage generates a structured summary of the run.
+5. Results are saved along with `processing_summary.json`.
 
-### AutoGen Configuration
-- **OAI_CONFIG_LIST**: OpenAI API configuration
-- **Group Chat Settings**: Max rounds, timeout parameters
-- **Agent System Messages**: Role-specific instructions
+### What AutoGen Mode Does Not Do
 
-### Environment Variables
-```
-OPENAI_API_KEY=your_api_key
-AUTOGEN_USE_DOCKER=false
-AUTOGEN_MAX_CONSECUTIVE_AUTO_REPLY=10
-AUTOGEN_TIMEOUT=120
-```
+The current implementation does not use group chat as the sole execution runtime for every pipeline step. The specialized local classes still perform the concrete data processing. This is a deliberate reliability tradeoff.
 
-### Agent Parameters
-- **Temperature**: 0.1 (consistent responses)
-- **Max Iterations**: 5 (prevent infinite loops)
-- **Confidence Thresholds**: Configurable per agent
+## Direct Mode
 
-## Data Flow
+When `process_feedback(use_autogen=False)` is used:
+- the shared pipeline runs sequentially
+- no group chat is required
+- each specialist still tries AutoGen single-task reasoning first if configured
+- failures fall back to deterministic rule-based logic
 
-### Input Data
-- **app_store_reviews.csv**: Mobile app feedback
-- **support_emails.csv**: Customer support tickets
+## Fallback Strategy
 
-### Processing Stages
-1. **Data Ingestion**: CSV reading and validation
-2. **Classification**: Category assignment with confidence
-3. **Specialized Analysis**: Bug/feature deep analysis
-4. **Ticket Generation**: Structured output creation
-5. **Quality Review**: Validation and scoring
+Fallback order:
+1. AutoGen group chat mode
+2. Direct pipeline mode
+3. Rule-based specialist logic
 
-### Output Files
-- **classified_feedback.csv**: Classification results
-- **bug_analysis.csv**: Bug analysis details
-- **feature_extraction.csv**: Feature request analysis
-- **generated_tickets.csv**: Final structured tickets
-- **quality_reviews.csv**: Quality assessment results
-- **metrics.json**: Performance metrics
+This happens at two levels:
+- orchestration level: AutoGen mode falls back to direct mode
+- specialist level: LLM-backed agents fall back to rules if configuration or parsing fails
 
-## Performance Characteristics
+## Configuration Loading
 
-### Processing Speed
-- **AutoGen Mode**: ~6-8 items/second (with conversation overhead)
-- **Direct Mode**: ~10-12 items/second (sequential processing)
+`src/autogen_support.py` provides shared AutoGen support:
+- checks whether AutoGen imports are available
+- loads config from `config/OAI_CONFIG_LIST`
+- supports `OAI_CONFIG_LIST` from environment
+- builds a minimal config from `OPENAI_API_KEY` and `OPENAI_MODEL_NAME` when possible
 
-### Accuracy
-- **Classification Accuracy**: 85-90%
-- **Quality Score Average**: 0.75-0.85
-- **Ticket Completeness**: 95%+
+## Output Model
 
-### Resource Usage
-- **Memory**: Moderate (data + agent states)
-- **API Calls**: Variable (AutoGen mode uses more)
-- **Processing Time**: Depends on data size and mode
+The orchestration layer returns a result dictionary with:
+- `status`
+- `mode`
+- `processing_time`
+- `total_processed`
+- `successful`
+- `failed`
+- `classification_accuracy`
+- `output_files`
+- `chat_summary`
+- `chat_history`
+- `category_distribution`
 
-## Error Handling
+## Saved Files
 
-### AutoGen-Specific Errors
-- **Group Chat Failures**: Automatic fallback to direct mode
-- **Agent Communication**: Timeout handling and retries
-- **LLM API Errors**: Rule-based fallback processing
+The pipeline can produce:
+- `classified_feedback.csv`
+- `bug_analysis.csv`
+- `feature_extraction.csv`
+- `generated_tickets.csv`
+- `quality_reviews.csv`
+- `metrics.json`
+- `processing_summary.json`
 
-### General Errors
-- **Data Validation**: Pre-processing checks
-- **File I/O**: Error recovery and logging
-- **Configuration**: Validation and defaults
+## Testing Coverage
 
-## Monitoring and Debugging
+Current automated tests validate:
+- agent fallback behavior
+- ticket validation behavior
+- direct-mode output generation
+- group chat participant wiring
+- AutoGen-mode structured summary handling
+- JSON extraction from chat content
 
-### Chat History
-- **Complete Conversation**: All agent interactions logged
-- **Decision Points**: Classification and analysis reasoning
-- **Error Tracking**: Failed operations and fallbacks
+## Design Tradeoff
 
-### Metrics
-- **Processing Time**: Per-item and total timing
-- **Agent Performance**: Success rates and error counts
-- **Quality Metrics**: Ongoing quality assessment
-
-## Scalability
-
-### Horizontal Scaling
-- **Agent Pooling**: Multiple agent instances
-- **Load Balancing**: Distribute processing load
-- **Batch Processing**: Handle large datasets efficiently
-
-### Vertical Scaling
-- **Resource Allocation**: Memory and CPU optimization
-- **API Rate Limiting**: Manage OpenAI API usage
-- **Caching**: Reduce redundant processing
-
-## Security Considerations
-
-### API Key Management
-- **Environment Variables**: Secure credential storage
-- **Access Control**: Limited API permissions
-- **Rate Limiting**: Prevent abuse
-
-### Data Privacy
-- **Local Processing**: Data stays in environment
-- **No External Storage**: No cloud data persistence
-- **Anonymization**: Option to remove PII
-
-## Future Enhancements
-
-### Agent Improvements
-- **Specialized Models**: Domain-specific fine-tuning
-- **Custom Tools**: External API integrations
-- **Advanced Reasoning**: Chain-of-thought prompting
-
-### Orchestration Enhancements
-- **Dynamic Routing**: Adaptive agent selection
-- **Parallel Processing**: Concurrent agent execution
-- **Learning Loop**: Performance-based optimization
+This project now favors a dependable hybrid pattern over a fully chat-driven runtime. That means:
+- better reliability for batch processing
+- cleaner fallback behavior
+- easier automated testing
+- less “pure” conversational execution than a fully autonomous AutoGen workflow

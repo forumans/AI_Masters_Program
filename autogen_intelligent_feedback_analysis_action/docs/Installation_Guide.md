@@ -1,332 +1,174 @@
-# AutoGen Installation Guide
+# Installation Guide
 
 ## Prerequisites
 
-### System Requirements
-- **Python**: 3.10 or higher
-- **Memory**: Minimum 4GB RAM (8GB recommended)
-- **Storage**: 1GB free space
-- **Network**: Internet connection for OpenAI API
+- Python 3.10 or higher
+- Internet access if you want to use OpenAI-backed AutoGen behavior
+- An OpenAI API key for LLM-backed execution
 
-### Required Accounts
-- **OpenAI API Key**: Valid API key with credits
-- **Git**: For version control (optional)
+The project can still run in direct mode without working AutoGen configuration, but LLM-backed agent behavior will fall back to rule-based logic.
 
-## Installation Steps
-
-### 1. Clone or Download Project
+## 1. Create and Activate a Virtual Environment
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd autogen_intelligent_feedback_analysis_action
-
-# Or download and extract the project files
+python -m venv .venv
 ```
 
-### 2. Create Virtual Environment
+Windows:
 
 ```bash
-# Create Python 3.10 virtual environment
-python -m venv .venv310
-
-# Activate virtual environment
-# Windows:
-.venv310\Scripts\Activate.ps1
-
-# macOS/Linux:
-source .venv310/bin/activate
+.venv\Scripts\Activate.ps1
 ```
 
-### 3. Install Dependencies
+macOS/Linux:
 
 ```bash
-# Install all required packages
+source .venv/bin/activate
+```
+
+## 2. Install Dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-#### Individual Package Installation (if needed)
+The current `requirements.txt` already targets newer compatible package versions, including:
+- `pyautogen`
+- `autogen-agentchat`
+- `openai`
+- `pandas`
+- `streamlit`
 
-If the requirements.txt installation fails, install packages individually:
+## 3. Configure Environment Variables
 
-```bash
-# Install AutoGen ecosystem
-pip install pyautogen>=0.2.0
-pip install autogen-agentchat>=0.2.0
+Create `.env` from the example if your project includes one, or define the variables manually.
 
-# Install OpenAI integration
-pip install openai>=1.40.0
-
-# Install data processing libraries
-pip install pandas==2.1.4
-pip install numpy==1.24.3
-pip install scikit-learn==1.3.2
-
-# Install NLP libraries
-pip install nltk==3.8.1
-pip install textblob==0.17.1
-
-# Install utilities
-pip install python-dotenv==1.0.0
-pip install openpyxl==3.1.5
-pip install requests==2.31.0
-
-# Install visualization
-pip install streamlit==1.29.0
-pip install matplotlib==3.8.2
-pip install seaborn==0.13.0
-pip install plotly==5.17.0
-
-# Install async support
-pip install aiohttp>=3.8.0
-
-# Install additional AutoGen dependencies
-pip install docker>=6.0.0
-pip install jupyter>=1.0.0
-pip install notebook>=6.5.0
-```
-
-## Configuration
-
-### 1. Environment Variables
-
-Create `.env` file from the example:
+Recommended variables:
 
 ```bash
-cp .env.example .env
-```
-
-Edit `.env` file with your configuration:
-
-```bash
-# OpenAI API Key (required for AutoGen agents)
 OPENAI_API_KEY=your_openai_api_key_here
-
-# OpenAI Model Configuration
-OPENAI_MODEL_NAME=gpt-3.5-turbo
-
-# AutoGen Configuration
+OPENAI_MODEL_NAME=gpt-4o-mini
 AUTOGEN_USE_DOCKER=false
 AUTOGEN_MAX_CONSECUTIVE_AUTO_REPLY=10
 AUTOGEN_TIMEOUT=120
-
-# Classification Thresholds
-CLASSIFICATION_CONFIDENCE_THRESHOLD=0.7
-BUG_SEVERITY_THRESHOLD=0.8
-FEATURE_PRIORITY_THRESHOLD=0.6
-
-# File Paths
-DATA_DIR=data
-OUTPUT_DIR=data
-LOG_DIR=logs
-
-# Agent Configuration
-DEFAULT_AGENT_TEMPERATURE=0.1
-MAX_AGENT_ITERATIONS=5
 ```
 
-### 2. OpenAI Configuration
+## 4. Configure AutoGen Model Access
 
-Create AutoGen configuration file:
+Preferred approach:
 
 ```bash
-cp config/OAI_CONFIG_LIST.example config/OAI_CONFIG_LIST
+copy config\OAI_CONFIG_LIST.example config\OAI_CONFIG_LIST
 ```
 
-Edit `config/OAI_CONFIG_LIST`:
+Then edit `config/OAI_CONFIG_LIST`:
 
 ```json
 [
-    {
-        "model": "gpt-3.5-turbo",
-        "api_key": "your-openai-api-key-here"
-    },
-    {
-        "model": "gpt-4",
-        "api_key": "your-openai-api-key-here"
-    }
+  {
+    "model": "gpt-4o-mini",
+    "api_key": "your-openai-api-key-here"
+  }
 ]
 ```
 
-### 3. Verify OpenAI API Key
+Notes:
+- The system looks for `config/OAI_CONFIG_LIST` automatically.
+- You can also provide `OAI_CONFIG_LIST` through an environment variable.
+- If no config file is found, the code can build a minimal config from `OPENAI_API_KEY` and `OPENAI_MODEL_NAME`.
 
-Test your OpenAI API key:
+## 5. Verify Input Data
 
-```python
-import openai
+Make sure these files exist under `data/`:
 
-# Test API connection
-client = openai.OpenAI(api_key="your-api-key")
-models = client.models.list()
-print(f"API Key valid. Available models: {len(models.data)}")
-```
-
-## Data Setup
-
-### 1. Verify Data Files
-
-Ensure the following files exist in the `data/` directory:
-
-```bash
+```text
 data/
 ├── app_store_reviews.csv
-├── support_emails.csv
-└── expected_classifications.csv (optional)
+└── support_emails.csv
 ```
 
-### 2. Sample Data Format
+Example review row:
 
-**app_store_reviews.csv**:
 ```csv
 review_id,platform,rating,review_text,user_name,date,app_version
-REV001,Google Play,1,"App crashes when I try to sync",john_doe89,2024-03-15,3.2.1
+REV001,Google Play,1,"App crashes when I try to sync",john_doe89,2026-05-01,3.2.1
 ```
 
-**support_emails.csv**:
+Example support email row:
+
 ```csv
 email_id,subject,body,sender_email,timestamp,priority
-EMAIL001,App Crash Report,"Hi Support Team...",user@email.com,2024-03-15,high
+EMAIL001,App Crash Report,"Hi Support Team, the app crashes during sync",user@email.com,2026-05-01T10:00:00,high
 ```
 
-## Testing Installation
-
-### 1. Test Import
+## 6. Run the Tests
 
 ```bash
-python -c "
-from src.orchestration.autogen_manager import AutoGenFeedbackAnalysisSystem
-print('✅ AutoGen system imported successfully')
-"
+pytest tests -q
 ```
 
-### 2. Test Dashboard
+This verifies the current implementation for:
+- direct mode
+- AutoGen-mode summary orchestration
+- agent fallbacks
+- chat payload parsing
+
+## 7. Run the Application
+
+### Main CLI
 
 ```bash
-python test_autogen_dashboard.py
+python src/main.py
 ```
 
-### 3. Run Demo
+### Demo Script
 
 ```bash
 python run_autogen_demo.py
 ```
 
+### Streamlit Dashboard
+
+```bash
+streamlit run src/ui/dashboard.py
+```
+
 ## Troubleshooting
 
-### Common Issues
+### `ModuleNotFoundError: No module named 'autogen'`
 
-#### 1. Import Errors
-```
-ModuleNotFoundError: No module named 'pyautogen'
-```
-**Solution**: Ensure virtual environment is activated and packages are installed.
+Install dependencies again:
 
-#### 2. OpenAI API Errors
-```
-openai.AuthenticationError: Invalid API key
-```
-**Solution**: Verify API key in `.env` and `config/OAI_CONFIG_LIST`.
-
-#### 3. AutoGen Configuration Errors
-```
-ValueError: config_list_from_json failed
-```
-**Solution**: Check `config/OAI_CONFIG_LIST` format and permissions.
-
-#### 4. Streamlit Issues
-```
-ModuleNotFoundError: No module named 'streamlit'
-```
-**Solution**: Install streamlit: `pip install streamlit==1.29.0`
-
-#### 5. Data File Errors
-```
-FileNotFoundError: data/app_store_reviews.csv
-```
-**Solution**: Ensure data files are in the correct directory.
-
-### Debug Mode
-
-Enable debug logging:
-
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
+```bash
+pip install -r requirements.txt
 ```
 
-### Performance Issues
+### AutoGen config is missing
 
-#### 1. Slow Processing
-- Reduce data size for testing
-- Use direct processing mode instead of AutoGen
-- Check OpenAI API rate limits
+Symptoms:
+- group chat is inactive
+- specialist agents fall back to rule-based logic
 
-#### 2. Memory Issues
-- Process data in smaller batches
-- Close unused applications
-- Increase system RAM if possible
+Fix:
+- create `config/OAI_CONFIG_LIST`
+- or set `OPENAI_API_KEY` and `OPENAI_MODEL_NAME`
 
-## Verification
+### `FileNotFoundError` for input CSVs
 
-### Complete System Check
+Ensure the following exist:
+- `data/app_store_reviews.csv`
+- `data/support_emails.csv`
 
-Run this verification script:
+### AutoGen mode does not appear fully conversational
 
-```python
-#!/usr/bin/env python3
-import sys
-import os
+That is expected in the current architecture. AutoGen mode is hybrid:
+- group chat coordinates and summarizes
+- the concrete batch pipeline runs through local Python classes
 
-def check_system():
-    print("🔍 AutoGen System Verification")
-    print("=" * 40)
-    
-    # Check imports
-    try:
-        from src.orchestration.autogen_manager import AutoGenFeedbackAnalysisSystem
-        print("✅ AutoGen system import: OK")
-    except ImportError as e:
-        print(f"❌ AutoGen system import: FAILED - {e}")
-        return False
-    
-    # Check environment
-    if os.getenv('OPENAI_API_KEY'):
-        print("✅ OpenAI API key: FOUND")
-    else:
-        print("❌ OpenAI API key: NOT FOUND")
-        return False
-    
-    # Check data files
-    data_files = ['data/app_store_reviews.csv', 'data/support_emails.csv']
-    for file in data_files:
-        if os.path.exists(file):
-            print(f"✅ {file}: FOUND")
-        else:
-            print(f"❌ {file}: NOT FOUND")
-            return False
-    
-    print("✅ All checks passed!")
-    return True
+## Verification Checklist
 
-if __name__ == "__main__":
-    check_system()
-```
-
-## Next Steps
-
-After successful installation:
-
-1. **Run the demo**: `python run_autogen_demo.py`
-2. **Start the dashboard**: `streamlit run src/ui/dashboard.py`
-3. **Review documentation**: Check `docs/` directory for detailed guides
-4. **Customize configuration**: Adjust thresholds and parameters
-5. **Process your data**: Add your own CSV files to the data directory
-
-## Support
-
-For issues and questions:
-
-1. Check the troubleshooting section above
-2. Review the AutoGen documentation
-3. Verify OpenAI API status and credits
-4. Check system requirements and compatibility
+You are set up correctly when:
+- `pytest tests -q` passes
+- `python src/main.py` completes successfully
+- output files appear in the configured output directory
+- `processing_summary.json` is generated after a run

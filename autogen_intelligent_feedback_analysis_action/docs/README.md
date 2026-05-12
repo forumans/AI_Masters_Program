@@ -1,277 +1,154 @@
 # AutoGen Intelligent User Feedback Analysis and Action System
 
-A multi-agent AI system using Microsoft AutoGen for automatically processing user feedback from app stores and support emails, categorizing issues, and generating structured tickets.
+This project processes user feedback from app store reviews and support emails, classifies each item, performs specialized analysis for bugs and feature requests, generates structured tickets, and reviews output quality.
+
+The current implementation is a hybrid AutoGen design:
+- Specialist components use AutoGen `AssistantAgent` and `UserProxyAgent` when configuration is available.
+- The main processing pipeline runs through local Python agent classes for reliability.
+- AutoGen group chat is used for orchestration prompts and run summaries in `use_autogen=True` mode.
+- If AutoGen dependencies or configuration are unavailable, the system falls back to direct processing and rule-based logic where needed.
 
 ## Project Structure
 
-```
+```text
 autogen_intelligent_feedback_analysis_action/
-├── data/                           # Input and output data files
-│   ├── app_store_reviews.csv       # Mock app store reviews
-│   ├── support_emails.csv          # Mock support emails
-│   ├── expected_classifications.csv # Expected classification results
-│   ├── classified_feedback.csv     # System output classifications
-│   ├── quality_reviews.csv         # Quality review results
-│   └── metrics.json               # Performance metrics
-├── src/                            # Source code
-│   ├── agents/                     # AutoGen agent implementations
-│   │   ├── __init__.py
-│   │   ├── csv_reader_agent.py     # Data reading agent
-│   │   ├── feedback_classifier_agent.py # Classification agent
-│   │   ├── bug_analysis_agent.py   # Bug analysis agent
-│   │   ├── feature_extractor_agent.py # Feature extraction agent
-│   │   ├── ticket_creator_agent.py # Ticket creation agent
-│   │   └── quality_critic_agent.py # Quality review agent
-│   ├── utils/                      # Utility functions
-│   │   ├── __init__.py
-│   │   ├── data_processor.py       # Data processing utilities
-│   │   ├── text_analyzer.py        # Text analysis utilities
-│   │   └── logger.py              # Logging utilities
-│   ├── ui/                         # Streamlit UI
-│   │   ├── __init__.py
-│   │   ├── dashboard.py            # Interactive dashboard
-│   │   └── config_panel.py         # Configuration panel
-│   ├── orchestration/              # AutoGen orchestration
-│   │   ├── __init__.py
-│   │   └── autogen_manager.py     # AutoGen group chat manager
-│   └── main.py                     # Main application entry point
-├── docs/                           # Documentation
-│   └── AutoGen_Feedback_Analysis_System.md
-├── tests/                          # Test files
-│   ├── __init__.py
+├── config/
+│   └── OAI_CONFIG_LIST.example
+├── data/
+│   ├── app_store_reviews.csv
+│   ├── support_emails.csv
+│   ├── expected_classifications.csv
+│   ├── analyzed_feedback.csv
+│   ├── generated_tickets.csv
+│   └── quality_reviews.csv
+├── docs/
+│   ├── API_Reference.md
+│   ├── AutoGen_Architecture.md
+│   ├── Installation_Guide.md
+│   └── README.md
+├── src/
+│   ├── agents/
+│   │   ├── csv_reader_agent.py
+│   │   ├── feedback_classifier_agent.py
+│   │   ├── bug_analysis_agent.py
+│   │   ├── feature_extractor_agent.py
+│   │   ├── ticket_creator_agent.py
+│   │   └── quality_critic_agent.py
+│   ├── orchestration/
+│   │   └── autogen_manager.py
+│   ├── ui/
+│   │   └── dashboard.py
+│   ├── autogen_support.py
+│   └── main.py
+├── tests/
 │   ├── test_agents.py
-│   ├── test_orchestration.py
-│   └── test_integration.py
-├── config/                         # Configuration files
-│   ├── OAI_CONFIG_LIST.example     # OpenAI configuration example
-│   └── agent_configs.json          # Agent configurations
-├── requirements.txt                # Python dependencies
-├── .env.example                    # Environment variables example
-├── README.md                       # Project README
-└── run_autogen_demo.py             # AutoGen demonstration script
+│   └── test_orchestration.py
+├── requirements.txt
+└── run_autogen_demo.py
 ```
 
-## Installation
+## Implemented Functionality
 
-1. Clone the repository
-2. Navigate to the project directory:
-   ```bash
-   cd autogen_intelligent_feedback_analysis_action
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-   **Note:** Make sure you have Python 3.10 installed. If the requirements.txt file fails to install, try installing the packages individually as shown below.
+- Read and validate feedback from `app_store_reviews.csv` and `support_emails.csv`
+- Combine both sources into a common feedback dataset
+- Classify feedback into `Bug`, `Feature Request`, `Praise`, `Complaint`, and `Spam`
+- Analyze bug reports for severity, category, device info, reproduction steps, and error details
+- Analyze feature requests for category, priority, impact, complexity, target users, and benefits
+- Create structured tickets with IDs, titles, descriptions, priority, labels, and effort estimates
+- Review ticket quality for completeness, clarity, relevance, accuracy, and actionability
+- Save output files and a processing summary for each run
 
-   ```bash
-   # Install AutoGen ecosystem
-   pip install pyautogen>=0.2.0
-   pip install autogen-agentchat>=0.2.0
+## Processing Modes
 
-   # Install OpenAI integration
-   pip install openai>=1.40.0
+### AutoGen Mode
 
-   # Install data processing libraries
-   pip install pandas==2.1.4 numpy==1.24.3 scikit-learn==1.3.2
+Run with `use_autogen=True`.
 
-   # Install NLP libraries
-   pip install nltk==3.8.1 textblob==0.17.1
+What happens:
+- The system validates and loads data locally.
+- A group chat session is used to coordinate the run and generate a structured summary.
+- The actual feedback pipeline is executed through the local agent classes.
+- Structured output files are written to the configured output directory.
 
-   # Install utilities
-   pip install python-dotenv==1.0.0 openpyxl==3.1.5 requests==2.31.0
+### Direct Mode
 
-   # Install visualization
-   pip install streamlit==1.29.0 matplotlib==3.8.2 seaborn==0.13.0 plotly==5.17.0
+Run with `use_autogen=False`.
 
-   # Install async support
-   pip install aiohttp>=3.8.0
-   ```
+What happens:
+- The system executes the full pipeline sequentially with no group chat dependency.
+- Specialist agents still attempt AutoGen-based single-task reasoning first.
+- If AutoGen is unavailable or a response cannot be parsed, each specialist falls back to rule-based processing.
 
-4. Set up environment variables:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your OpenAI API key
-   ```
+## Output Files
 
-5. Set up OpenAI configuration for AutoGen:
-   ```bash
-   cp config/OAI_CONFIG_LIST.example config/OAI_CONFIG_LIST
-   # Edit config/OAI_CONFIG_LIST with your OpenAI API configuration
-   ```
+Depending on the data and run mode, the system writes:
 
-## Usage
+- `classified_feedback.csv`
+- `bug_analysis.csv`
+- `feature_extraction.csv`
+- `generated_tickets.csv`
+- `quality_reviews.csv`
+- `metrics.json`
+- `processing_summary.json`
 
-**Note:** All commands should be run from the `autogen_intelligent_feedback_analysis_action` directory.
+## Running the System
 
-### Run the AutoGen demonstration:
+Run from the `autogen_intelligent_feedback_analysis_action` directory.
+
+### Demo
+
 ```bash
 python run_autogen_demo.py
 ```
 
-### Run the main system:
+### Main Application
+
 ```bash
 python src/main.py
 ```
 
-### Run the Streamlit dashboard:
+### Streamlit Dashboard
+
 ```bash
 streamlit run src/ui/dashboard.py
 ```
 
-**Streamlit Dashboard Details:**
-- **URL**: http://localhost:8501 (automatically opens in browser)
-- **Network Access**: http://192.168.68.62:8501 (for network access)
-- **Features**:
-  - 📊 Interactive feedback analysis visualizations
-  - 🎫 Real-time ticket management interface
-  - ⚙️ System configuration panel
-  - 📈 Performance metrics and monitoring
-  - 🔍 Quality review dashboard
-  - 📋 Detailed data tables and filtering
-
-**Dashboard Sections:**
-1. **Data Analysis**: View classified feedback with interactive charts
-2. **Ticket Management**: Browse and manage generated tickets
-3. **Configuration**: Adjust system parameters and agent settings
-4. **System Status**: Monitor system health and performance
-
-## Features
-
-- **AutoGen Multi-Agent Architecture**: Multiple specialized agents coordinated via group chat
-- **Intelligent Orchestration**: AutoGen group chat manages agent interactions
-- **NLP-Based Classification**: Automatic categorization of feedback using LLMs
-- **Technical Analysis**: Extract device info, reproduction steps, severity
-- **Ticket Generation**: Structured output with proper formatting
-- **Quality Control**: Automated validation and review
-- **Real-time Monitoring**: Streamlit dashboard for tracking
-- **Configurable Parameters**: Adjustable thresholds and priorities
-- **Fallback Mechanisms**: Rule-based classification when AutoGen fails
-
-## System Performance
-
-The system has been successfully tested with the following performance metrics:
-
-- **Processing Speed**: ~6-8 feedback items per second (AutoGen orchestration)
-- **Classification Accuracy**: 85-90% (depending on data quality)
-- **Success Rate**: 80-85% (with AutoGen multi-agent coordination)
-- **Multi-Agent Orchestration**: Full AutoGen integration working
-- **Output Generation**: Automatic creation of classifications, quality reviews, and metrics
-
-## AutoGen Architecture
-
-### Agents
-1. **Coordinator Agent**: Orchestrates the entire analysis process
-2. **Data Processor Agent**: Handles data reading and validation
-3. **Feedback Classifier Agent**: Categorizes feedback using LLMs
-4. **Quality Reviewer Agent**: Assesses classification quality
-5. **User Proxy Agent**: Interface for human interaction
-
-### Group Chat Flow
-1. **Coordinator** initiates the analysis process
-2. **Data Processor** reads and validates feedback data
-3. **Feedback Classifier** processes each feedback item
-4. **Quality Reviewer** assesses classification results
-5. **Coordinator** summarizes results and provides insights
-
-## Troubleshooting
-
-### AutoGen-Specific Issues
-
-**Common Issues and Solutions:**
-
-1. **AutoGen Configuration Error**
-   - Ensure `config/OAI_CONFIG_LIST` is properly configured
-   - Verify OpenAI API key has sufficient credits
-   - Check that AutoGen is properly installed
-
-2. **Group Chat Not Responding**
-   - Increase timeout values in agent configuration
-   - Check network connectivity to OpenAI API
-   - Verify agent system messages are properly formatted
-
-3. **Agent Communication Errors**
-   - Ensure all agents have proper system messages
-   - Check that agent names are unique
-   - Verify group chat configuration
-
-4. **Memory Issues with Large Datasets**
-   - Process data in smaller batches
-   - Increase system memory or use cloud resources
-   - Consider using AutoGen's code execution features
-
-### General Issues
-
-**Dependencies:**
-```bash
-# Reinstall if needed
-pip install -r requirements.txt
-```
-
-**Virtual Environment:**
-```bash
-# Activate Python 3.10 environment
-.venv310\Scripts\Activate.ps1
-```
-
-## Output Files
-
-- `classified_feedback.csv`: Final classified feedback with confidence scores
-- `quality_reviews.csv`: Quality assessment of classifications
-- `metrics.json`: Performance and accuracy metrics
-- `processing_summary.json`: AutoGen chat summary and results
-
 ## Configuration
 
-### Environment Variables (.env)
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `OPENAI_MODEL_NAME`: Model to use (default: gpt-3.5-turbo)
-- `AUTOGEN_USE_DOCKER`: Whether to use Docker (default: false)
-- `AUTOGEN_MAX_CONSECUTIVE_AUTO_REPLY`: Max auto replies (default: 10)
-- `AUTOGEN_TIMEOUT`: Agent timeout in seconds (default: 120)
+### Environment Variables
 
-### AutoGen Configuration (config/OAI_CONFIG_LIST)
-```json
-[
-    {
-        "model": "gpt-3.5-turbo",
-        "api_key": "your-openai-api-key"
-    }
-]
-```
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL_NAME`
+- `AUTOGEN_USE_DOCKER`
+- `AUTOGEN_MAX_CONSECUTIVE_AUTO_REPLY`
+- `AUTOGEN_TIMEOUT`
+
+### AutoGen Config File
+
+You can provide model configuration through:
+
+- `config/OAI_CONFIG_LIST`
+- `OAI_CONFIG_LIST` environment variable
+
+If no config file is found, the system can also build a minimal config from `OPENAI_API_KEY` and `OPENAI_MODEL_NAME`.
 
 ## Testing
 
-Run the test suite:
+Run:
+
 ```bash
-python -m pytest tests/ -v
+pytest tests -q
 ```
 
-## Contributing
+Current automated coverage includes:
+- agent fallback behavior
+- group chat wiring
+- direct-mode processing
+- AutoGen-mode orchestration summary handling
+- chat JSON extraction
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Run tests and ensure they pass
-6. Submit a pull request
+## Notes
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## AutoGen Architecture
-
-### Agents
-1. **Coordinator Agent**: Orchestrates the entire analysis process
-2. **Data Processor Agent**: Handles data reading and validation
-3. **Feedback Classifier Agent**: Categorizes feedback using LLMs
-4. **Quality Reviewer Agent**: Assesses classification quality
-5. **User Proxy Agent**: Interface for human interaction
-
-### Group Chat Flow
-1. **Coordinator** initiates the analysis process
-2. **Data Processor** reads and validates feedback data
-3. **Feedback Classifier** processes each feedback item
-4. **Quality Reviewer** assesses classification results
-5. **Coordinator** summarizes results and provides insights
+- `CSVReaderAgent` is a regular Python data component, not a conversational AutoGen agent.
+- The AutoGen implementation is intentionally hybrid. Group chat helps coordinate and summarize, while the local pipeline does the concrete data processing.
+- When AutoGen is unavailable, the project still functions through direct execution and rule-based fallbacks.

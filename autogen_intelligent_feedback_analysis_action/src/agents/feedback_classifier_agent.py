@@ -11,8 +11,7 @@ from typing import Dict, List, Optional, Tuple
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from autogen import AssistantAgent, UserProxyAgent, config_list_from_json
-import openai
+from autogen_support import AssistantAgent, UserProxyAgent, autogen_is_ready, load_config_list
 
 class FeedbackClassifierAgent:
     """
@@ -52,8 +51,9 @@ class FeedbackClassifierAgent:
     def _setup_autogen_agents(self):
         """Setup AutoGen agents for classification"""
         try:
-            # Configuration for AutoGen agents
-            config_list = config_list_from_json(env_or_file="OAI_CONFIG_LIST")
+            config_list = load_config_list(base_dir=os.path.join(os.path.dirname(__file__), '..', '..'))
+            if not autogen_is_ready(config_list):
+                raise RuntimeError("AutoGen dependencies or configuration are unavailable")
             
             # Create classifier assistant agent
             self.classifier_agent = AssistantAgent(
