@@ -1,6 +1,7 @@
 """
 Evaluator and Optimizer Pattern (LLM-as-a-Judge)
 
+v1: The initial data object is a structured product description with features and audience.
 
 """
 from json import load

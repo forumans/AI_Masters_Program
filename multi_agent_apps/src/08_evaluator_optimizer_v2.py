@@ -1,6 +1,7 @@
 """
 Evaluator and Optimizer Pattern (LLM-as-a-Judge)
 
+v2: The initial data object is just a plain english prompt about a product.
 
 """
 from json import load
