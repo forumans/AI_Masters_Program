@@ -170,32 +170,60 @@ API_BASE_URL     = "http://localhost:5000"  # FastAPI backend URL
 TEST_EMPLOYEE_ID = 1                        # replace with a real employee ID from your DB
 
 # ===========================================================================
-# SECTION 3d: JUDGE MODEL CONFIGURATION (Gemini)
+# SECTION 3d: JUDGE MODEL CONFIGURATION (provider-driven from .env)
 #
 # WHY: The judge model is the LLM RAGAS uses to score each answer — it is
 #      completely separate from the model that generates answers inside the
-#      FastAPI server. Using a different model family (Gemini instead of
-#      OpenAI) avoids self-grading bias: an OpenAI model judging its own
-#      OpenAI-generated answers may rate them more favourably than a neutral
-#      third-party model would.
+#      FastAPI server. Keeping all judge settings in .env means you can swap
+#      providers (Gemini ↔ OpenAI) or swap models without touching the code —
+#      useful for controlling costs by picking the cheapest capable model.
 #
-# HOW: We use Google's Gemini via langchain-google-genai, wrapped in
-#      LangchainLLMWrapper so RAGAS can call it through the standard
-#      LangChain interface. The same package provides Gemini embeddings
-#      for the AnswerRelevancy metric (semantic similarity scoring).
+# HOW: Three variables in hr_assistant_api/.env control the judge:
 #
-# SETUP: Add your Google API key to hr_assistant_api/.env:
-#          GOOGLE_API_KEY=AIza...
-#        Get a key at: https://aistudio.google.com → Get API key
+#   JUDGE_LLM_PROVIDER  — which provider to use: "gemini" or "openai"
+#   JUDGE_LLM_MODEL     — the model name for that provider
+#   JUDGE_EMB_MODEL     — the embedding model name for that provider
 #
-# MODELS:
-#   Judge LLM  : gemini-2.0-flash  (fast, capable, cost-effective judge)
-#   Embeddings : models/text-embedding-004  (Google's latest embedding model)
+# PROVIDER EXAMPLES (copy the block you want into your .env):
+#
+#   # Gemini (cheapest option, no self-grading bias vs OpenAI answers)
+#   JUDGE_LLM_PROVIDER=gemini
+#   JUDGE_LLM_MODEL=gemini-2.0-flash
+#   JUDGE_EMB_MODEL=models/text-embedding-004
+#   GOOGLE_API_KEY=AIza...          ← get at https://aistudio.google.com
+#
+#   # OpenAI (same provider as the answer model — simpler setup)
+#   JUDGE_LLM_PROVIDER=openai
+#   JUDGE_LLM_MODEL=gpt-4o-mini
+#   JUDGE_EMB_MODEL=text-embedding-3-small
+#   # OPENAI_API_KEY already present in .env — no extra key needed
+#
+# DEFAULTS: If JUDGE_LLM_PROVIDER is not set, falls back to "gemini".
 # ===========================================================================
 
-GOOGLE_API_KEY  = env.get("GOOGLE_API_KEY", "")
-JUDGE_LLM_MODEL = "gemini-2.0-flash"          # Gemini model used to score answers
-JUDGE_EMB_MODEL = "models/text-embedding-004"  # Gemini embedding model for answer_relevancy
+JUDGE_LLM_PROVIDER = env.get("JUDGE_LLM_PROVIDER", "gemini").lower().strip()
+GOOGLE_API_KEY     = env.get("GOOGLE_API_KEY", "")
+
+# Default model names per provider — overridden by .env values if present
+_PROVIDER_DEFAULTS = {
+    "gemini": {
+        "llm": "gemini-2.0-flash",
+        "emb": "models/text-embedding-004",
+    },
+    "openai": {
+        "llm": "gpt-4o-mini",
+        "emb": "text-embedding-3-small",
+    },
+}
+
+JUDGE_LLM_MODEL = env.get(
+    "JUDGE_LLM_MODEL",
+    _PROVIDER_DEFAULTS.get(JUDGE_LLM_PROVIDER, _PROVIDER_DEFAULTS["gemini"])["llm"],
+)
+JUDGE_EMB_MODEL = env.get(
+    "JUDGE_EMB_MODEL",
+    _PROVIDER_DEFAULTS.get(JUDGE_LLM_PROVIDER, _PROVIDER_DEFAULTS["gemini"])["emb"],
+)
 
 
 # ===========================================================================
@@ -782,6 +810,74 @@ def print_report(result, run_date: str, model: str, num_questions: int) -> dict:
 
 
 # ===========================================================================
+# FUNCTION: _build_judge
+#
+# WHY: The judge LLM and embeddings must be constructed differently depending
+#      on which provider is configured in .env. Centralising that logic here
+#      keeps main() clean and makes it easy to add new providers later.
+#
+# HOW: Reads JUDGE_LLM_PROVIDER from the module-level constant (set from .env)
+#      and returns a (judge_llm, judge_emb) tuple ready to pass to evaluate().
+#      Raises SystemExit with a clear message if the required API key is missing.
+#
+# SUPPORTED PROVIDERS:
+#   "gemini" → ChatGoogleGenerativeAI + GoogleGenerativeAIEmbeddings
+#              requires GOOGLE_API_KEY in .env
+#   "openai" → ChatOpenAI + OpenAIEmbeddings
+#              uses OPENAI_API_KEY already present in .env
+# ===========================================================================
+
+def _build_judge():
+    from ragas.llms import LangchainLLMWrapper
+    from ragas.embeddings import LangchainEmbeddingsWrapper
+
+    if JUDGE_LLM_PROVIDER == "gemini":
+        if not GOOGLE_API_KEY:
+            print("ERROR: JUDGE_LLM_PROVIDER=gemini but GOOGLE_API_KEY is missing from .env.")
+            print("  Get a free key at https://aistudio.google.com → Get API key")
+            print("  Then add: GOOGLE_API_KEY=AIza... to hr_assistant_api/.env")
+            raise SystemExit(1)
+
+        from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+        llm = LangchainLLMWrapper(
+            ChatGoogleGenerativeAI(
+                model=JUDGE_LLM_MODEL,
+                google_api_key=GOOGLE_API_KEY,
+                temperature=0,
+            )
+        )
+        emb = LangchainEmbeddingsWrapper(
+            GoogleGenerativeAIEmbeddings(
+                model=JUDGE_EMB_MODEL,
+                google_api_key=GOOGLE_API_KEY,
+            )
+        )
+
+    elif JUDGE_LLM_PROVIDER == "openai":
+        from langchain_openai import ChatOpenAI, OpenAIEmbeddings as LCOpenAIEmbeddings
+        llm = LangchainLLMWrapper(
+            ChatOpenAI(
+                model=JUDGE_LLM_MODEL,
+                openai_api_key=OPENAI_API_KEY,
+                temperature=0,
+            )
+        )
+        emb = LangchainEmbeddingsWrapper(
+            LCOpenAIEmbeddings(
+                model=JUDGE_EMB_MODEL,
+                openai_api_key=OPENAI_API_KEY,
+            )
+        )
+
+    else:
+        print(f"ERROR: Unknown JUDGE_LLM_PROVIDER '{JUDGE_LLM_PROVIDER}' in .env.")
+        print("  Supported values: gemini, openai")
+        raise SystemExit(1)
+
+    return llm, emb
+
+
+# ===========================================================================
 # FUNCTION: main
 #
 # WHY: Orchestrates all the steps in the correct order:
@@ -872,40 +968,13 @@ def main():
     from datasets import Dataset
     from ragas import evaluate
     from ragas.metrics import Faithfulness, AnswerRelevancy, ContextPrecision, ContextRecall
-    from ragas.llms import LangchainLLMWrapper
-    from ragas.embeddings import LangchainEmbeddingsWrapper
-    from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+    # _build_judge() reads JUDGE_LLM_PROVIDER, JUDGE_LLM_MODEL, and JUDGE_EMB_MODEL
+    # from .env and returns the correct LangChain-wrapped LLM and embeddings objects.
+    # Exits with a clear message if the required API key is missing.
+    judge_llm, judge_emb = _build_judge()
 
-    if not GOOGLE_API_KEY:
-        print("ERROR: GOOGLE_API_KEY is missing from .env.")
-        print("  Get a key at https://aistudio.google.com → Get API key")
-        print("  Then add GOOGLE_API_KEY=AIza... to hr_assistant_api/.env\n")
-        return
-
-    # Judge LLM: Gemini via LangchainLLMWrapper.
-    # Using a different model family than the answer-generation model (OpenAI)
-    # reduces self-grading bias — Gemini scores OpenAI answers as a neutral judge.
-    judge_llm = LangchainLLMWrapper(
-        ChatGoogleGenerativeAI(
-            model=JUDGE_LLM_MODEL,
-            google_api_key=GOOGLE_API_KEY,
-            temperature=0,   # deterministic scoring — same question always gets same score
-        )
-    )
-
-    # Judge embeddings: Gemini text-embedding-004.
-    # AnswerRelevancy computes semantic similarity between the question and the
-    # answer using embeddings. We use Gemini embeddings to stay consistent with
-    # the Gemini judge rather than mixing embedding providers.
-    judge_emb = LangchainEmbeddingsWrapper(
-        GoogleGenerativeAIEmbeddings(
-            model=JUDGE_EMB_MODEL,
-            google_api_key=GOOGLE_API_KEY,
-        )
-    )
-
-    print(f"Judge LLM        : {JUDGE_LLM_MODEL} (Gemini)")
-    print(f"Judge Embeddings : {JUDGE_EMB_MODEL} (Gemini)\n")
+    print(f"Judge LLM        : {JUDGE_LLM_MODEL} ({JUDGE_LLM_PROVIDER})")
+    print(f"Judge Embeddings : {JUDGE_EMB_MODEL} ({JUDGE_LLM_PROVIDER})\n")
 
     # experiment_name labels this entire RAGAS evaluation run in LangSmith.
     # Each run gets a timestamp so you can compare runs over time (e.g. before
