@@ -1,14 +1,18 @@
 """
 RAGAS evaluation for the HR Assistant — live API mode.
 
-Answers are collected by calling the running FastAPI server at http://localhost:5000/api/chat.
-Contexts (retrieved chunks) are pulled directly from ChromaDB for RAG-path questions.
-DB-path questions (leave queries, org charts) return empty contexts and are scored only on
-faithfulness and answer_relevancy.
+Architecture
+------------
+This script is fully independent of the hr_assistant project:
+  - Reads ALL config from evaluation_projects/.env (single source of truth)
+  - Connects to ChromaDB directly via langchain-chroma (no hr_assistant code)
+  - Gets answers via HTTP calls to the live FastAPI server
+  - No sys.path manipulation, no hr_assistant imports, no shared .env files
 
 Prerequisites before running:
   1. PostgreSQL must be running.
-  2. FastAPI backend must be running: cd hr_assistant/hr_assistant_api && python run.py
+  2. FastAPI backend: cd hr_assistant/hr_assistant_api && python run.py
+  3. evaluation_projects/.env must be populated (see .env for all keys).
 
 Run:
     python evaluation_projects/test_03_ragas.py
@@ -22,7 +26,6 @@ Metrics measured:
 
 import json
 import os
-import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -31,199 +34,132 @@ from pathlib import Path
 # ===========================================================================
 # SECTION 1: PATH SETUP
 #
-# WHY: This script can be run from any folder on your machine. Python's import
-#      system and file-path lookups are relative to wherever you run the script
-#      from, not where the script lives. We fix all paths to absolute locations
-#      upfront so nothing breaks regardless of the working directory.
-#
-# HOW: Path(__file__) gives the absolute path of THIS script file. We walk
-#      up the folder tree from there to locate the hr_assistant_api folder.
+# WHY: We need the absolute path of this script to locate evaluation_projects/.env
+#      and to resolve the CHROMA_PERSIST_DIR relative to the repo root.
 # ===========================================================================
 
-SCRIPT_DIR = Path(__file__).resolve().parent           # .../evaluation_projects/
-REPO_ROOT  = SCRIPT_DIR.parent                         # .../GenAI_Masters_Program/
-API_DIR    = REPO_ROOT / "hr_assistant" / "hr_assistant_api"  # where the app lives
+SCRIPT_DIR = Path(__file__).resolve().parent   # .../evaluation_projects/
+REPO_ROOT  = SCRIPT_DIR.parent                 # .../GenAI_Masters_Program/
 
 
 # ===========================================================================
-# SECTION 2: LOAD ENVIRONMENT VARIABLES BEFORE IMPORTING THE APP
+# SECTION 2: LOAD EVALUATION CONFIG — single .env, no hr_assistant reads
 #
-# WHY: The HR Assistant app reads configuration (API keys, DB URL, model names,
-#      file paths) from a .env file. Specifically, app/config.py does:
+# WHY: evaluation_projects/.env is the ONE place that controls the evaluation.
+#      No other config file is read. This makes the evaluation project fully
+#      independent — you can run it against any hr_assistant deployment by
+#      just changing the values in evaluation_projects/.env.
 #
-#          settings = Settings()   <-- runs the moment the file is imported
-#
-#      Pydantic checks that every required field is present. If any variable is
-#      missing, it raises a validation error and the import crashes. So we MUST
-#      load the .env into os.environ BEFORE we do "from app.services import ...".
-#
-# HOW: dotenv_values() reads the .env file and returns a plain dictionary
-#      (it does NOT automatically put values into os.environ). We then push
-#      every key-value pair into os.environ manually so Pydantic can find them.
-#      We give dotenv_values() an explicit absolute path so it finds the file
-#      regardless of which folder you ran the script from.
+# HOW: dotenv_values() returns a plain dict without modifying os.environ.
+#      We push only the LangSmith keys into os.environ later (Section 3b)
+#      because LangChain reads those at import time from the environment.
 # ===========================================================================
 
-from dotenv import dotenv_values  # noqa: E402 (intentionally imported after path setup)
+from dotenv import dotenv_values  # noqa: E402
 
-# App config — ChromaDB paths, OPENAI_API_KEY, DATABASE_URL, etc.
-# Nothing from this file is changed by the evaluation code.
-env = dotenv_values(API_DIR / ".env")
-
-# Evaluation config — judge provider, model names, judge API keys.
-# Kept in evaluation_projects/.env so the hr_assistant project is untouched.
 eval_env = dotenv_values(SCRIPT_DIR / ".env")
 
-# Push every variable from .env into the process environment.
-# Skip entries where the value is None (blank lines in .env can produce those).
-os.environ.update({k: v for k, v in env.items() if v is not None})
-
-# Tell Python where to find the "app" package so that
-# "from app.services.vector_store import ..." resolves correctly.
-sys.path.insert(0, str(API_DIR))
-
 
 # ===========================================================================
-# SECTION 3: RESOLVE ABSOLUTE FILE PATHS FOR CHROMADB AND THE PDF
+# SECTION 3: CONSTANTS — all sourced from evaluation_projects/.env
 #
-# WHY: The .env file stores these paths as relative strings (e.g. "./chroma_data").
-#      Relative paths are interpreted from wherever you run the script, which
-#      varies. We convert them to absolute paths anchored to API_DIR.
-#
-# HOW:
-#   - lstrip("./\\") strips leading dot, slash, or backslash characters so that
-#     "./chroma_data" becomes "chroma_data", which we can safely join onto API_DIR.
-#   - .resolve() on a Path object collapses any ".." segments and returns a
-#     clean absolute path.
+# OPENAI_API_KEY      : used to embed questions when querying ChromaDB
+# CHROMA_DIR          : absolute path to the ChromaDB folder on disk
+# CHROMA_COLLECTION   : name of the ChromaDB collection holding policy chunks
+# EMBEDDING_MODEL_NAME: embedding model used to query ChromaDB (must match
+#                       the model used when the collection was originally built)
+# API_BASE_URL        : the running FastAPI server — answers come from here
+# TEST_EMPLOYEE_ID    : employee ID for personalized questions (Category 8)
+# ANSWER_MODEL_NAME   : display-only label for the model inside the API
 # ===========================================================================
 
-_chroma_rel = env.get("CHROMA_PERSIST_DIR", "./chroma_data").lstrip("./\\")
-CHROMA_DIR  = str(API_DIR / _chroma_rel)   # absolute path to the ChromaDB folder on disk
+OPENAI_API_KEY       = eval_env.get("OPENAI_API_KEY", "")
+EMBEDDING_MODEL_NAME = eval_env.get("EMBEDDING_MODEL_NAME", "text-embedding-3-small")
+CHROMA_COLLECTION    = eval_env.get("CHROMA_COLLECTION_NAME", "hr_policies_collection")
+CHROMA_DIR           = str(REPO_ROOT / eval_env.get(
+    "CHROMA_PERSIST_DIR", "hr_assistant/hr_assistant_api/chroma_data"
+))
+API_BASE_URL         = eval_env.get("API_BASE_URL", "http://localhost:5000")
+TEST_EMPLOYEE_ID     = eval_env.get("TEST_EMPLOYEE_ID", 1)
+ANSWER_MODEL_NAME    = eval_env.get("ANSWER_MODEL_NAME", "unknown")
 
-_pdf_rel  = env.get("HR_POLICIES_PATH", "../hr_policies/hr_policies.pdf")
-PDF_PATH  = str((API_DIR / _pdf_rel).resolve())   # absolute path to the HR policies PDF
-
-OPENAI_API_KEY = env["OPENAI_API_KEY"]
 
 # ===========================================================================
 # SECTION 3b: LANGSMITH TRACING CONFIGURATION
 #
-# WHY: LangSmith is an observability platform built by LangChain. When enabled,
-#      it automatically captures every LLM call, embedding call, and retrieval
-#      step made by LangChain components and logs them to a web dashboard.
-#      This lets you see exactly what happened inside each RAGAS judge call
-#      and each ChromaDB retrieval — far more detail than the final score alone.
+# WHY: LangSmith is an observability platform. When enabled, it captures every
+#      LLM call, embedding call, and retrieval step made by LangChain components
+#      and logs them to a web dashboard — useful for diagnosing low RAGAS scores.
 #
-# HOW: LangSmith tracing is activated by setting four environment variables
-#      before any LangChain import. LangChain reads these at import time:
+# HOW: LangChain reads the four LANGCHAIN_* env vars at import time. We must
+#      set them in os.environ BEFORE any LangChain import happens. All four
+#      keys come from evaluation_projects/.env — the hr_assistant project is
+#      not involved.
 #
-#   LANGCHAIN_TRACING_V2  = "true"  → turns on tracing globally
-#   LANGCHAIN_API_KEY     = "ls__…" → your LangSmith account key
-#   LANGCHAIN_PROJECT     = "…"     → groups all runs under one project name
-#   LANGCHAIN_ENDPOINT    = "…"     → LangSmith server (default is cloud)
+# SETUP: Add to evaluation_projects/.env:
+#   LANGCHAIN_API_KEY=ls__...   ← from https://smith.langchain.com → API Keys
+#   LANGCHAIN_PROJECT=hr-assistant-ragas-eval
 #
-#      To get a LangSmith API key:
-#        1. Sign up at https://smith.langchain.com (free tier available)
-#        2. Go to Settings → API Keys → Create API Key
-#        3. Add LANGCHAIN_API_KEY=ls__<your_key> to evaluation_projects/.env
-#        4. Optionally add LANGCHAIN_PROJECT=hr-assistant-ragas-eval
-#
-#      If LANGCHAIN_API_KEY is absent from evaluation_projects/.env, tracing
-#      is silently skipped — the evaluation still runs normally.
-#
-# WHAT GETS TRACED (from this script):
-#   - RAGAS judge LLM calls (faithfulness, answer_relevancy, etc.)
-#   - RAGAS embedding calls (semantic similarity for answer_relevancy)
-#   - ChromaDB retrieval calls (via langchain-chroma)
-#   - The build_ragas_dataset() loop (each question as a named trace)
-#
-# WHAT IS NOT TRACED (runs inside the FastAPI server process):
-#   - The actual answer generation (GPT-4 call inside the live API)
-#   - To trace that too, add the same env vars to hr_assistant_api/.env
-#     and restart the backend server.
+# WHAT GETS TRACED: RAGAS judge LLM calls, embedding calls, ChromaDB queries.
+# WHAT IS NOT TRACED: answer generation inside the FastAPI server (traced only
+#   if you also add LANGCHAIN_TRACING_V2=true to hr_assistant_api/.env and
+#   restart the server).
 # ===========================================================================
 
-# Both LangSmith keys come from evaluation_projects/.env, not the hr_assistant project.
 _langsmith_key = eval_env.get("LANGCHAIN_API_KEY", "")
 LANGSMITH_ENABLED = bool(_langsmith_key)
 
 if LANGSMITH_ENABLED:
-    # Set LangChain tracing env vars before any LangChain import so that
-    # the SDK picks them up at module-load time.
     os.environ["LANGCHAIN_TRACING_V2"] = "true"
     os.environ["LANGCHAIN_API_KEY"]     = _langsmith_key
     os.environ["LANGCHAIN_PROJECT"]     = eval_env.get(
         "LANGCHAIN_PROJECT", "hr-assistant-ragas-eval"
     )
-    os.environ.setdefault(
-        "LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com"
-    )
+    os.environ.setdefault("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
+
 
 # ===========================================================================
 # SECTION 3c: LIVE API CONFIGURATION
 #
-# WHY: We now call the running FastAPI server instead of the Python classes
-#      directly. These two constants control where the API is and which employee
-#      ID to use for personalized test cases.
+# API_BASE_URL and TEST_EMPLOYEE_ID are set above from eval_env.
+# They are documented here for clarity.
 #
-# HOW: API_BASE_URL points to the running backend. TEST_EMPLOYEE_ID must be
-#      set to a valid employee ID that exists in your PostgreSQL database —
-#      this is used for questions in Category 3 (personalized responses).
-#      If you don't have an employee to test with, set it to None; those
-#      questions will then run without employee context.
+# API_BASE_URL    : the running FastAPI backend — all answers come from HTTP
+#                   calls to this URL; no hr_assistant Python code is invoked
+# TEST_EMPLOYEE_ID: passed as employee_id in the ChatRequest payload for
+#                   Category 8 personalized questions
 # ===========================================================================
 
-API_BASE_URL     = "http://localhost:5000"  # FastAPI backend URL
-TEST_EMPLOYEE_ID = 1                        # replace with a real employee ID from your DB
 
 # ===========================================================================
-# SECTION 3d: JUDGE MODEL CONFIGURATION (provider-driven from .env)
+# SECTION 3d: JUDGE MODEL CONFIGURATION (provider-driven from eval_env)
 #
-# WHY: The judge model is the LLM RAGAS uses to score each answer — it is
-#      completely separate from the model that generates answers inside the
-#      FastAPI server. Keeping all judge settings in .env means you can swap
-#      providers (Gemini ↔ OpenAI) or swap models without touching the code —
-#      useful for controlling costs by picking the cheapest capable model.
+# WHY: The judge model scores answers independently of the model that generated
+#      them. All settings live in evaluation_projects/.env so you can swap
+#      providers (Gemini ↔ OpenAI) without touching any code.
 #
-# HOW: Three variables in evaluation_projects/.env control the judge.
-#      The hr_assistant project files are never modified by the evaluation.
+# HOW: Set in evaluation_projects/.env:
 #
-#   JUDGE_LLM_PROVIDER  — which provider to use: "gemini" or "openai"
-#   JUDGE_LLM_MODEL     — the model name for that provider
-#   JUDGE_EMB_MODEL     — the embedding model name for that provider
-#
-# PROVIDER EXAMPLES (edit evaluation_projects/.env to switch):
-#
-#   # Gemini (cheapest option, no self-grading bias vs OpenAI answers)
+#   # Gemini (avoids self-grading bias vs OpenAI-generated answers)
 #   JUDGE_LLM_PROVIDER=gemini
 #   JUDGE_LLM_MODEL=gemini-2.0-flash
 #   JUDGE_EMB_MODEL=models/text-embedding-004
-#   GEMINI_API_KEY=AIza...          ← get at https://aistudio.google.com
+#   GEMINI_API_KEY=AIza...
 #
-#   # OpenAI (same provider as the answer model — simpler setup)
+#   # OpenAI (simpler — no extra key needed)
 #   JUDGE_LLM_PROVIDER=openai
 #   JUDGE_LLM_MODEL=gpt-4o-mini
 #   JUDGE_EMB_MODEL=text-embedding-3-small
-#   OPENAI_API_KEY=sk-...           ← already in evaluation_projects/.env
 #
-# DEFAULTS: If JUDGE_LLM_PROVIDER is not set, falls back to "gemini".
+# DEFAULTS: falls back to Gemini if JUDGE_LLM_PROVIDER is not set.
 # ===========================================================================
 
-# All judge settings come from evaluation_projects/.env — not from the hr_assistant project.
 JUDGE_LLM_PROVIDER = eval_env.get("JUDGE_LLM_PROVIDER", "gemini").lower().strip()
-# Accept either GOOGLE_API_KEY or GEMINI_API_KEY — both refer to the same Google key
 GOOGLE_API_KEY     = eval_env.get("GOOGLE_API_KEY") or eval_env.get("GEMINI_API_KEY", "")
 
-# Default model names per provider — overridden by evaluation_projects/.env values if present
 _PROVIDER_DEFAULTS = {
-    "gemini": {
-        "llm": "gemini-2.0-flash",
-        "emb": "models/text-embedding-004",
-    },
-    "openai": {
-        "llm": "gpt-4o-mini",
-        "emb": "text-embedding-3-small",
-    },
+    "gemini": {"llm": "gemini-2.0-flash",  "emb": "models/text-embedding-004"},
+    "openai": {"llm": "gpt-4o-mini",       "emb": "text-embedding-3-small"},
 }
 
 JUDGE_LLM_MODEL = eval_env.get(
@@ -237,18 +173,38 @@ JUDGE_EMB_MODEL = eval_env.get(
 
 
 # ===========================================================================
-# SECTION 4: IMPORT THE HR ASSISTANT VECTOR STORE SERVICE
+# SECTION 4: CHROMADB CONNECTION
 #
-# WHY: We only import VectorStoreService (not AIService). The vector store is
-#      used to retrieve context chunks from ChromaDB for RAG-path questions —
-#      the same chunks the API internally uses. AIService is no longer needed
-#      here because answers now come from the live HTTP API instead.
+# WHY: RAGAS needs the retrieved chunks ("contexts") for context_precision
+#      and context_recall. The live API doesn't expose these in its response,
+#      so we query ChromaDB directly. ChromaDB is a shared data asset — the
+#      evaluation connects to it the same way any other client would, without
+#      importing any hr_assistant Python code.
 #
-# NOTE: Pydantic validates settings at import time, so os.environ must be
-#       populated (done in Section 2) before this import runs.
+# HOW: We use langchain-chroma directly (already installed in the venv).
+#      The embedding model and collection name must match what was used when
+#      the HR policies PDF was originally ingested — set in evaluation_projects/.env.
+#      The connection is read-only (similarity_search only, no writes).
+#
+# NOTE: DB-path questions (leave/org queries) bypass ChromaDB entirely —
+#       the API queries PostgreSQL for those. Those questions get empty
+#       contexts and are scored only on faithfulness and answer_relevancy.
 # ===========================================================================
 
-from app.services.vector_store import VectorStoreService  # noqa: E402
+from langchain_chroma import Chroma                   # noqa: E402
+from langchain_openai import OpenAIEmbeddings         # noqa: E402
+
+
+def _connect_chroma() -> Chroma:
+    """Open a read-only connection to the shared ChromaDB vector store."""
+    return Chroma(
+        persist_directory=CHROMA_DIR,
+        embedding_function=OpenAIEmbeddings(
+            model=EMBEDDING_MODEL_NAME,
+            openai_api_key=OPENAI_API_KEY,
+        ),
+        collection_name=CHROMA_COLLECTION,
+    )
 
 
 # ===========================================================================
@@ -263,8 +219,7 @@ from app.services.vector_store import VectorStoreService  # noqa: E402
 #                   ChromaDB retrieval (leave queries, org structure). These
 #                   questions get empty contexts and are only scored on
 #                   faithfulness and answer_relevancy.
-#   "employee_id" : integer employee ID to pass in the API request for
-#                   personalized responses. None for non-personalized questions.
+#   "employee_id" : integer employee ID for personalized responses, None otherwise
 #
 # CATEGORIES:
 #   1–12  : Pure HR policy questions (RAG path, all 4 metrics)
@@ -302,9 +257,7 @@ TEST_DATASET = [
     {
         "topic": "Leave Policy",
         "question": "What happens to unused vacation time when an employee is terminated?",
-        "ground_truth": (
-            "Any earned but unused vacation will be paid at the time of termination."
-        ),
+        "ground_truth": "Any earned but unused vacation will be paid at the time of termination.",
         "db_path": False,
         "employee_id": None,
     },
@@ -357,9 +310,7 @@ TEST_DATASET = [
     {
         "topic": "Working Hours",
         "question": "When does the organization's workweek begin and end?",
-        "ground_truth": (
-            "The workweek begins at 12:00 a.m. Saturday and ends at 11:59 p.m. Friday."
-        ),
+        "ground_truth": "The workweek begins at 12:00 a.m. Saturday and ends at 11:59 p.m. Friday.",
         "db_path": False,
         "employee_id": None,
     },
@@ -369,9 +320,7 @@ TEST_DATASET = [
     {
         "topic": "Benefits",
         "question": "Which employees are eligible for paid holidays?",
-        "ground_truth": (
-            "Regular full-time and regular part-time employees are eligible for paid holidays."
-        ),
+        "ground_truth": "Regular full-time and regular part-time employees are eligible for paid holidays.",
         "db_path": False,
         "employee_id": None,
     },
@@ -411,14 +360,8 @@ TEST_DATASET = [
         "employee_id": None,
     },
     # -----------------------------------------------------------------------
-    # NEW — Category 6: Live leave queries (DB path, db_path=True)
-    #
-    # WHY ADDED: These questions contain keywords like "on leave" or "absent"
-    #   that trigger AIService._handle_leave_query(), which queries PostgreSQL
-    #   directly instead of ChromaDB. The previous script couldn't test these
-    #   (it had no database connection). With the live API running these are
-    #   fully testable. Contexts will be empty; only faithfulness and
-    #   answer_relevancy apply.
+    # NEW — Category 6: Live leave queries (DB path)
+    # Trigger the database lookup path in the API — contexts are empty.
     # -----------------------------------------------------------------------
     {
         "topic": "Live Leave",
@@ -427,7 +370,7 @@ TEST_DATASET = [
             "The response should list employees who are currently on approved leave, "
             "including their name, department, leave type, and leave dates."
         ),
-        "db_path": True,   # triggers database lookup, not ChromaDB
+        "db_path": True,
         "employee_id": None,
     },
     {
@@ -441,12 +384,8 @@ TEST_DATASET = [
         "employee_id": None,
     },
     # -----------------------------------------------------------------------
-    # NEW — Category 7: Org structure queries (DB path, db_path=True)
-    #
-    # WHY ADDED: These questions trigger the org-chart/tree code path in the
-    #   API, which returns a type="tree" response built from the database.
-    #   The previous script never exercised this branch. Contexts are empty
-    #   (no ChromaDB involved); only faithfulness and answer_relevancy apply.
+    # NEW — Category 7: Org structure queries (DB path)
+    # Trigger the tree/hierarchy path in the API — contexts are empty.
     # -----------------------------------------------------------------------
     {
         "topic": "Org Structure",
@@ -469,25 +408,18 @@ TEST_DATASET = [
         "employee_id": None,
     },
     # -----------------------------------------------------------------------
-    # NEW — Category 8: Personalized policy questions (RAG path, with employee_id)
-    #
-    # WHY ADDED: When employee_id is passed in the API request, the server
-    #   fetches the employee's details from the database and injects them into
-    #   the prompt as context (name, position, department, hire date, status).
-    #   The model then personalizes its answer — e.g. calculating vacation
-    #   entitlement based on actual hire date. The previous script had no
-    #   employee context at all. ChromaDB is still used for retrieval, so
-    #   all 4 RAGAS metrics apply.
+    # NEW — Category 8: Personalized policy questions (RAG path + employee_id)
+    # The API injects the employee's DB record into the prompt context.
     # -----------------------------------------------------------------------
     {
         "topic": "Personalized Leave",
         "question": "How many vacation days am I entitled to based on my years of service?",
         "ground_truth": (
             "The entitlement depends on years of service: 1.5 days/month for under 2 years, "
-            "1.75 days/month for 2–6 years, and 2 days/month for 7 or more years."
+            "1.75 days/month for 2-6 years, and 2 days/month for 7 or more years."
         ),
         "db_path": False,
-        "employee_id": TEST_EMPLOYEE_ID,   # API will inject this employee's hire date into prompt
+        "employee_id": TEST_EMPLOYEE_ID,
     },
     {
         "topic": "Personalized Status",
@@ -511,12 +443,7 @@ TEST_DATASET = [
     },
     # -----------------------------------------------------------------------
     # NEW — Category 9: Explicit response format tests (RAG path)
-    #
-    # WHY ADDED: The API can return four response types: text, table, metric,
-    #   tree. The previous tests only exercised "text". These questions
-    #   explicitly request table and metric formats to verify that
-    #   extract_answer_text() handles those branches correctly and that RAGAS
-    #   can score them. ChromaDB retrieval is used, so all 4 metrics apply.
+    # Verify extract_answer_text() handles table and metric response types.
     # -----------------------------------------------------------------------
     {
         "topic": "Format: Table",
@@ -544,46 +471,32 @@ TEST_DATASET = [
 # ===========================================================================
 # SECTION 6: PASS/FAIL THRESHOLDS
 #
-# WHY: A raw score (e.g. 0.72) is meaningless without a benchmark to compare
-#      against. These thresholds represent the minimum acceptable quality level
-#      for each metric. Scores at or above the threshold are labelled PASS;
-#      below it, FAIL.
-#
-# HOW: The values are set conservatively based on typical RAG quality targets:
-#   - faithfulness and answer_relevancy at 0.80 (high bar — answers must be
-#     accurate and on-topic)
-#   - context_precision at 0.70 (some noise in retrieval is acceptable)
-#   - context_recall at 0.75 (most relevant facts must be retrieved)
-#
-# NOTE: context_precision and context_recall are only scored for RAG-path
-#   questions (db_path=False). Aggregate scores for these two metrics are
-#   computed only over questions where they are not NaN.
+# Minimum acceptable score per metric. Scores at or above → PASS, below → FAIL.
+# context_precision and context_recall are only scored for RAG-path questions;
+# pandas .mean() skips NaN rows automatically so DB-path questions don't drag
+# down the aggregate for those two metrics.
 # ===========================================================================
 
 THRESHOLDS = {
-    "faithfulness": 0.80,
-    "answer_relevancy": 0.80,
+    "faithfulness":      0.80,
+    "answer_relevancy":  0.80,
     "context_precision": 0.70,
-    "context_recall": 0.75,
+    "context_recall":    0.75,
 }
 
 
 # ===========================================================================
 # FUNCTION: extract_answer_text
 #
-# WHY: The HR Assistant API returns a JSON string inside the "response" field,
-#      not plain text. For example:
-#          '{"type": "text", "data": "The leave policy states...", "meta": {...}}'
-#      RAGAS expects a plain English string as the answer. This function peels
-#      off the JSON wrapper and returns only the human-readable content.
+# WHY: The API returns a JSON string in the "response" field, not plain text:
+#          '{"type": "text", "data": "...", "meta": {...}}'
+#      RAGAS expects a plain English string. This function unwraps the JSON.
 #
-# HOW: It parses the JSON, reads the "type" field to know the response shape,
-#      then extracts and formats the "data" field accordingly:
-#   - "text"   → the data value is already a plain string, return as-is
-#   - "table"  → data contains columns + rows; flatten into a readable text table
-#   - "metric" → data contains a label + number; format as "Label: 42"
-#   - "tree"   → org-chart hierarchy; convert to string representation
-#      If JSON parsing fails entirely, the raw string is returned unchanged.
+# HOW: Reads the "type" field and extracts "data" accordingly:
+#   "text"   → return data string directly
+#   "table"  → flatten columns + rows into a readable plain-text table
+#   "metric" → format as "Label: value"
+#   "tree"   → convert to string (fallback)
 # ===========================================================================
 
 def extract_answer_text(raw_response: str) -> str:
@@ -593,12 +506,9 @@ def extract_answer_text(raw_response: str) -> str:
         data = parsed.get("data", "")
 
         if response_type == "text":
-            # Most policy questions return a plain text answer — just unwrap it.
             return str(data)
 
         if response_type == "table" and isinstance(data, dict):
-            # Tables come as {"columns": [...], "rows": [[...], ...]}
-            # Join each row's values with " | " to make a readable plain-text table.
             columns = data.get("columns", [])
             rows    = data.get("rows", [])
             lines   = [" | ".join(str(c) for c in columns)]
@@ -607,64 +517,45 @@ def extract_answer_text(raw_response: str) -> str:
             return "\n".join(lines)
 
         if response_type == "metric" and isinstance(data, dict):
-            # Metrics are {"label": "Headcount", "value": 42} — format as a sentence.
             return f"{data.get('label', '')}: {data.get('value', '')}"
 
-        # Fallback for "tree" type or any unexpected format.
         return str(data)
 
     except (json.JSONDecodeError, AttributeError):
-        # If the response isn't valid JSON at all, use it as-is.
         return raw_response
 
 
 # ===========================================================================
 # FUNCTION: build_ragas_dataset
 #
-# WHY: RAGAS needs four parallel lists — one entry per question:
-#       question, answer, contexts, ground_truth
-#      This function builds those lists by calling the live FastAPI server for
-#      answers and querying ChromaDB directly for contexts.
+# WHY: Builds the four parallel lists RAGAS needs: question, answer, contexts,
+#      ground_truth — one entry per test case.
 #
-# HOW: For each question it makes up to two calls:
-#
-#   Step A — Contexts (RAG-path questions only):
-#     vs.query(question, n_results=5) asks ChromaDB to find the 5 most
-#     relevant text chunks from the HR policies PDF. For DB-path questions
-#     (db_path=True), contexts is set to an empty list because ChromaDB is
-#     bypassed — the API queries PostgreSQL directly for those.
+# HOW: For each question:
+#   Step A — Contexts (RAG-path only):
+#     chroma.similarity_search(question, k=5) returns the top-5 matching
+#     chunks from ChromaDB. DB-path questions get empty contexts because
+#     the API queries PostgreSQL directly for those — ChromaDB is not involved.
 #
 #   Step B — Answer (always from the live HTTP API):
-#     httpx.post(API_BASE_URL + "/api/chat", json=payload) sends the question
-#     to the running FastAPI server. The response is {"response": "<JSON>"},
-#     so we unwrap one extra layer compared to the old direct-service approach.
-#     employee_id is included in the payload for personalized questions.
+#     httpx.post(API_BASE_URL + "/api/chat", json=payload) — one HTTP call per
+#     question. The response is {"response": "<JSON string>"}, so we unwrap one
+#     extra layer before calling extract_answer_text().
 #
-#   Step C — Extract plain text:
-#     extract_answer_text() strips the inner JSON wrapper to get plain English.
+#   Step C — Extract plain text for RAGAS scoring.
 #
-#   time.sleep(0.5) paces requests to avoid hitting OpenAI rate limits on
-#   the server side.
-#
-# RETURNS: A plain dict with four keys, each holding a list of 21 items.
-#          This is the exact shape the HuggingFace Dataset class expects.
+# @traceable creates a named LangSmith span per question (visible in the
+# dashboard instead of generic "row 0, row 1" labels). No-op when LangSmith
+# is not configured.
 # ===========================================================================
 
-from langsmith import traceable as _traceable  # no-op when LANGCHAIN_TRACING_V2 is not set
+from langsmith import traceable as _traceable  # noqa: E402
 
 
 @_traceable(name="build_ragas_dataset")
-def build_ragas_dataset(vs: VectorStoreService) -> dict:
-    # @traceable records this entire function as a named run in LangSmith.
-    # Every LangChain call inside the loop (ChromaDB similarity search) appears
-    # as a child span under it, giving a per-question view in the dashboard.
-    # When LANGCHAIN_TRACING_V2 is not set the decorator is a no-op.
-    import httpx
-
-    # langsmith.trace creates a named child span for each question in LangSmith.
-    # This replaces the generic "row 0, row 1" labels with the actual question
-    # text and topic. It is a no-op when LANGCHAIN_TRACING_V2 is not set.
+def build_ragas_dataset(chroma: Chroma) -> dict:
     from langsmith import trace as ls_trace
+    import httpx
 
     questions, answers, contexts_list, ground_truths = [], [], [], []
     n = len(TEST_DATASET)
@@ -675,49 +566,38 @@ def build_ragas_dataset(vs: VectorStoreService) -> dict:
         emp_id     = item.get("employee_id")
         path_label = "DB" if is_db_path else "RAG"
 
-        # Build a meaningful LangSmith span name: "[01/21] [RAG] Leave Policy — When can..."
-        # This is what appears in the LangSmith dashboard instead of "row 0", "row 1", etc.
         span_name = f"[{i + 1:02d}/{n}] [{path_label}] {item['topic']} — {q[:50]}"
-
         print(f"  [{i + 1:02d}/{n}] [{path_label}] [{item['topic']}] {q[:60]}...")
 
         with ls_trace(
             name=span_name,
-            # inputs appear in the LangSmith "Inputs" panel for this span
-            inputs={
-                "question":    q,
-                "topic":       item["topic"],
-                "path":        path_label,
-                "employee_id": emp_id,
-            },
-            # tags let you filter runs in LangSmith by topic or path type
+            inputs={"question": q, "topic": item["topic"], "path": path_label, "employee_id": emp_id},
             tags=[item["topic"], path_label],
         ):
-            # Step A: Retrieve context chunks from ChromaDB for RAG-path questions.
-            #         DB-path questions (leave/org) bypass ChromaDB entirely — the API
-            #         queries PostgreSQL for those, so contexts is intentionally empty.
+            # Step A: context retrieval — RAG-path only.
+            # DB-path questions (leave/org) bypass ChromaDB; the API queries
+            # PostgreSQL for those, so contexts is intentionally empty.
             if is_db_path:
                 contexts = []
             else:
-                contexts = vs.query(q, n_results=5)
+                docs     = chroma.similarity_search(q, k=5)
+                contexts = [doc.page_content for doc in docs]
 
-            # Step B: Call the live FastAPI server to get the generated answer.
-            #         The payload matches the ChatRequest schema: message + optional employee_id.
+            # Step B: call the live API for the generated answer.
             payload = {"message": q, "employee_id": emp_id}
             try:
                 resp = httpx.post(
                     f"{API_BASE_URL}/api/chat",
                     json=payload,
-                    timeout=30.0,   # 30 s — generous for slow model responses
+                    timeout=30.0,
                 )
                 resp.raise_for_status()
-                # The API wraps the AI response in {"response": "<JSON string>"}
                 raw = resp.json()["response"]
             except httpx.HTTPError as exc:
                 print(f"    WARNING: API call failed ({exc}). Recording empty answer.")
                 raw = json.dumps({"type": "text", "data": ""})
 
-            # Step C: Strip the JSON wrapper to get plain text for RAGAS.
+            # Step C: strip the JSON wrapper to get plain text for RAGAS.
             answer = extract_answer_text(raw)
 
         questions.append(q)
@@ -725,75 +605,106 @@ def build_ragas_dataset(vs: VectorStoreService) -> dict:
         contexts_list.append(contexts)
         ground_truths.append(item["ground_truth"])
 
-        time.sleep(0.5)  # brief pause to respect OpenAI rate limits on the server side
+        time.sleep(0.5)
 
     return {
         "question":     questions,
         "answer":       answers,
-        "contexts":     contexts_list,   # empty list for DB-path questions
+        "contexts":     contexts_list,
         "ground_truth": ground_truths,
     }
 
 
 # ===========================================================================
-# FUNCTION: print_report
+# FUNCTION: _build_judge
 #
-# WHY: The raw RAGAS result object is hard to read. This function formats it
-#      into a human-friendly console table showing both overall (aggregate)
-#      scores and per-question scores, with a clear PASS/FAIL verdict.
+# WHY: Constructs the RAGAS judge LLM and embeddings based on the provider
+#      configured in evaluation_projects/.env. Centralising this here keeps
+#      main() clean and makes adding new providers a one-place change.
 #
-# HOW:
-#   - result.to_pandas() converts the RAGAS output into a DataFrame where each
-#     row is one question and each column is one metric score.
-#   - df[key].mean() computes the average score — NaN values (from DB-path
-#     questions where context metrics don't apply) are automatically skipped
-#     by pandas .mean(), so the aggregate only counts scoreable questions.
-#   - A PATH column ("RAG" or "DB ") is shown for each row so it's immediately
-#     clear why context_precision and context_recall show N/A for DB questions.
-#   - pd.isna() guards against NaN values RAGAS produces when a metric
-#     couldn't be computed (DB-path questions, or any API error).
-#
-# RETURNS: agg — a dict of {metric_name: average_score} used later when saving
-#          the JSON results file.
+# SUPPORTED PROVIDERS:
+#   "gemini" → ChatGoogleGenerativeAI + GoogleGenerativeAIEmbeddings
+#              requires GEMINI_API_KEY (or GOOGLE_API_KEY) in eval .env
+#   "openai" → ChatOpenAI + OpenAIEmbeddings
+#              uses OPENAI_API_KEY already in eval .env
 # ===========================================================================
 
-def print_report(result, run_date: str, model: str, num_questions: int) -> dict:
+def _build_judge():
+    from ragas.llms import LangchainLLMWrapper
+    from ragas.embeddings import LangchainEmbeddingsWrapper
+
+    if JUDGE_LLM_PROVIDER == "gemini":
+        if not GOOGLE_API_KEY:
+            print("ERROR: JUDGE_LLM_PROVIDER=gemini but GEMINI_API_KEY is missing from evaluation_projects/.env.")
+            print("  Get a free key at https://aistudio.google.com → Get API key")
+            raise SystemExit(1)
+        from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+        llm = LangchainLLMWrapper(
+            ChatGoogleGenerativeAI(model=JUDGE_LLM_MODEL, google_api_key=GOOGLE_API_KEY, temperature=0)
+        )
+        emb = LangchainEmbeddingsWrapper(
+            GoogleGenerativeAIEmbeddings(model=JUDGE_EMB_MODEL, google_api_key=GOOGLE_API_KEY)
+        )
+
+    elif JUDGE_LLM_PROVIDER == "openai":
+        from langchain_openai import ChatOpenAI, OpenAIEmbeddings as LCOpenAIEmbeddings
+        llm = LangchainLLMWrapper(
+            ChatOpenAI(model=JUDGE_LLM_MODEL, openai_api_key=OPENAI_API_KEY, temperature=0)
+        )
+        emb = LangchainEmbeddingsWrapper(
+            LCOpenAIEmbeddings(model=JUDGE_EMB_MODEL, openai_api_key=OPENAI_API_KEY)
+        )
+
+    else:
+        print(f"ERROR: Unknown JUDGE_LLM_PROVIDER '{JUDGE_LLM_PROVIDER}' in evaluation_projects/.env.")
+        print("  Supported values: gemini, openai")
+        raise SystemExit(1)
+
+    return llm, emb
+
+
+# ===========================================================================
+# FUNCTION: print_report
+#
+# WHY: Formats the raw RAGAS result into a human-friendly console table with
+#      aggregate scores (pass/fail) and a per-question breakdown.
+#
+# HOW:
+#   result.to_pandas() → DataFrame: one row per question, one column per metric.
+#   df[key].mean()     → average score; NaN rows (DB-path questions) are
+#                        automatically skipped by pandas so they don't skew
+#                        the context metric averages.
+#   PATH column        → "RAG" or "DB" explains why some rows show N/A.
+# ===========================================================================
+
+def print_report(result, run_date: str, num_questions: int) -> dict:
     import pandas as pd
 
     width = 75
     print("\n" + "=" * width)
     print("RAGAS Evaluation Report — HR Assistant (Live API Mode)")
-    print(f"Run Date : {run_date}")
-    print(f"Model    : {model}")
-    print(f"API      : {API_BASE_URL}")
-    print(f"Questions: {num_questions}  ({sum(1 for x in TEST_DATASET if not x.get('db_path'))} RAG-path, "
+    print(f"Run Date    : {run_date}")
+    print(f"Answer model: {ANSWER_MODEL_NAME}  |  Judge: {JUDGE_LLM_MODEL} ({JUDGE_LLM_PROVIDER})")
+    print(f"API         : {API_BASE_URL}")
+    print(f"Questions   : {num_questions}  "
+          f"({sum(1 for x in TEST_DATASET if not x.get('db_path'))} RAG-path, "
           f"{sum(1 for x in TEST_DATASET if x.get('db_path'))} DB-path)")
     print("=" * width)
 
-    # Convert RAGAS result into a DataFrame (one row per question, one column per metric).
     df = result.to_pandas()
-
     metric_keys = ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]
 
-    # Compute average scores. pandas .mean() skips NaN automatically, so DB-path
-    # questions with empty contexts don't drag down the context metric averages.
-    agg = {}
-    for key in metric_keys:
-        if key in df.columns:
-            agg[key] = df[key].mean()
+    agg = {k: df[k].mean() for k in metric_keys if k in df.columns}
 
-    # Print the aggregate summary with pass/fail verdict.
     print("\nAGGREGATE SCORES (NaN rows excluded from context metric averages):")
     for metric, score in agg.items():
-        threshold = THRESHOLDS.get(metric, 0.0)
         if pd.isna(score):
             print(f"  {metric:<22}: N/A")
         else:
+            threshold = THRESHOLDS.get(metric, 0.0)
             status = "PASS" if score >= threshold else "FAIL"
             print(f"  {metric:<22}: {score:.4f}  [target >= {threshold:.2f}]  {status}")
 
-    # Print the per-question breakdown table.
-    # PATH column shows RAG or DB so it's clear why some rows have N/A context scores.
     print("\nPER-QUESTION BREAKDOWN:")
     header = (
         f"  {'#':>2}  {'Path':<4}  {'Topic':<20}  {'Q (truncated)':<38}  "
@@ -804,7 +715,7 @@ def print_report(result, run_date: str, model: str, num_questions: int) -> dict:
 
     for idx, row in df.iterrows():
         item    = TEST_DATASET[idx]
-        path    = "DB " if item.get("db_path") else "RAG"
+        path    = "DB" if item.get("db_path") else "RAG"
         topic   = item["topic"][:20]
         q_short = item["question"][:38]
         scores_str = "  ".join(
@@ -820,83 +731,15 @@ def print_report(result, run_date: str, model: str, num_questions: int) -> dict:
 
 
 # ===========================================================================
-# FUNCTION: _build_judge
+# FUNCTION: main — orchestrates all steps
 #
-# WHY: The judge LLM and embeddings must be constructed differently depending
-#      on which provider is configured in .env. Centralising that logic here
-#      keeps main() clean and makes it easy to add new providers later.
-#
-# HOW: Reads JUDGE_LLM_PROVIDER from the module-level constant (set from .env)
-#      and returns a (judge_llm, judge_emb) tuple ready to pass to evaluate().
-#      Raises SystemExit with a clear message if the required API key is missing.
-#
-# SUPPORTED PROVIDERS:
-#   "gemini" → ChatGoogleGenerativeAI + GoogleGenerativeAIEmbeddings
-#              requires GOOGLE_API_KEY in .env
-#   "openai" → ChatOpenAI + OpenAIEmbeddings
-#              uses OPENAI_API_KEY already present in .env
-# ===========================================================================
-
-def _build_judge():
-    from ragas.llms import LangchainLLMWrapper
-    from ragas.embeddings import LangchainEmbeddingsWrapper
-
-    if JUDGE_LLM_PROVIDER == "gemini":
-        if not GOOGLE_API_KEY:
-            print("ERROR: JUDGE_LLM_PROVIDER=gemini but GOOGLE_API_KEY is missing from .env.")
-            print("  Get a free key at https://aistudio.google.com → Get API key")
-            print("  Then add: GOOGLE_API_KEY=AIza... to hr_assistant_api/.env")
-            raise SystemExit(1)
-
-        from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
-        llm = LangchainLLMWrapper(
-            ChatGoogleGenerativeAI(
-                model=JUDGE_LLM_MODEL,
-                google_api_key=GOOGLE_API_KEY,
-                temperature=0,
-            )
-        )
-        emb = LangchainEmbeddingsWrapper(
-            GoogleGenerativeAIEmbeddings(
-                model=JUDGE_EMB_MODEL,
-                google_api_key=GOOGLE_API_KEY,
-            )
-        )
-
-    elif JUDGE_LLM_PROVIDER == "openai":
-        from langchain_openai import ChatOpenAI, OpenAIEmbeddings as LCOpenAIEmbeddings
-        llm = LangchainLLMWrapper(
-            ChatOpenAI(
-                model=JUDGE_LLM_MODEL,
-                openai_api_key=OPENAI_API_KEY,
-                temperature=0,
-            )
-        )
-        emb = LangchainEmbeddingsWrapper(
-            LCOpenAIEmbeddings(
-                model=JUDGE_EMB_MODEL,
-                openai_api_key=OPENAI_API_KEY,
-            )
-        )
-
-    else:
-        print(f"ERROR: Unknown JUDGE_LLM_PROVIDER '{JUDGE_LLM_PROVIDER}' in .env.")
-        print("  Supported values: gemini, openai")
-        raise SystemExit(1)
-
-    return llm, emb
-
-
-# ===========================================================================
-# FUNCTION: main
-#
-# WHY: Orchestrates all the steps in the correct order:
-#        health check → init ChromaDB → build dataset → evaluate → report → save
-#      Keeping this in a function (rather than at module level) means the
-#      evaluation only runs when you explicitly execute the script, not when
-#      another file imports it.
-#
-# HOW: Six numbered steps.
+# Steps:
+#   1. Health check    — fail fast if the FastAPI server is not running
+#   2. ChromaDB init   — connect directly, no hr_assistant code
+#   3. Build dataset   — HTTP calls to API + direct ChromaDB queries
+#   4. RAGAS evaluate  — LLM-as-judge scoring
+#   5. Print report    — console output
+#   6. Save JSON       — timestamped results file
 # ===========================================================================
 
 def main():
@@ -904,94 +747,57 @@ def main():
 
     print("\n=== HR Assistant — RAGAS Evaluation (Live API Mode) ===\n")
 
-    # Print LangSmith status so the user knows whether tracing is active.
     if LANGSMITH_ENABLED:
         project = os.environ.get("LANGCHAIN_PROJECT", "hr-assistant-ragas-eval")
         print(f"LangSmith tracing : ENABLED  (project: '{project}')")
-        print(f"  Dashboard        : https://smith.langchain.com")
-        print(f"  Note: API answer-generation calls are traced only if the")
-        print(f"        FastAPI server also has LANGCHAIN_TRACING_V2=true.\n")
+        print(f"  Dashboard       : https://smith.langchain.com\n")
     else:
-        print("LangSmith tracing : DISABLED (add LANGCHAIN_API_KEY to .env to enable)\n")
+        print("LangSmith tracing : DISABLED (add LANGCHAIN_API_KEY to evaluation_projects/.env)\n")
 
     # ------------------------------------------------------------------
-    # Step 1: Health check — verify the FastAPI server is reachable.
-    #
-    # WHY: If the server isn't running, every API call in build_ragas_dataset()
-    #      would fail with a connection error after a 30-second timeout,
-    #      wasting several minutes. Failing fast here gives a clear message
-    #      telling the user exactly what to do.
+    # Step 1: Health check — fail fast with a clear message.
     # ------------------------------------------------------------------
-    print(f"Checking API health at {API_BASE_URL}/health ...")
+    print(f"Checking API at {API_BASE_URL}/health ...")
     try:
         health = httpx.get(f"{API_BASE_URL}/health", timeout=5.0)
         health.raise_for_status()
         print(f"API is up: {health.json()}\n")
     except Exception as exc:
-        print(f"\nERROR: Cannot reach the FastAPI server at {API_BASE_URL}.")
-        print(f"  Detail: {exc}")
-        print(f"\nPlease start the backend first:")
-        print(f"  cd hr_assistant/hr_assistant_api")
-        print(f"  python run.py\n")
+        print(f"\nERROR: Cannot reach {API_BASE_URL}. Start the backend first:")
+        print(f"  cd hr_assistant/hr_assistant_api && python run.py")
+        print(f"  Detail: {exc}\n")
         return
 
     # ------------------------------------------------------------------
-    # Step 2: Initialise ChromaDB for context retrieval (RAG-path only).
-    #
-    # VectorStoreService connects to the existing ChromaDB on disk.
-    # load_pdf() checks if documents are already stored; if the ChromaDB
-    # folder already has 203 chunks, it skips re-ingestion immediately.
-    # We only need this for RAG-path questions — DB-path questions get
-    # empty contexts and don't touch ChromaDB at all.
+    # Step 2: Connect to ChromaDB directly — no hr_assistant imports.
+    # Uses CHROMA_PERSIST_DIR, CHROMA_COLLECTION_NAME, EMBEDDING_MODEL_NAME
+    # and OPENAI_API_KEY from evaluation_projects/.env.
     # ------------------------------------------------------------------
-    print("Initialising ChromaDB for context retrieval...")
-    vs = VectorStoreService(persist_directory=CHROMA_DIR, openai_api_key=OPENAI_API_KEY)
-    vs.load_pdf(PDF_PATH)
-
-    # Read the model name from .env (previously we got it from AIService.model).
-    model_name = env.get("OPENAI_MODEL_NAME", "unknown")
-    print(f"ChromaDB ready. Judge model: {model_name}\n")
+    print(f"Connecting to ChromaDB at {CHROMA_DIR} ...")
+    chroma = _connect_chroma()
+    count  = chroma._collection.count()
+    print(f"ChromaDB ready: {count} chunks in '{CHROMA_COLLECTION}'\n")
 
     # ------------------------------------------------------------------
-    # Step 3: Call the live API for every question and collect contexts.
-    #
-    # build_ragas_dataset() makes one HTTP POST per question to the live
-    # FastAPI server, and one ChromaDB query per RAG-path question.
-    # Returns a plain dict ready to be wrapped in a HuggingFace Dataset.
+    # Step 3: Build the evaluation dataset.
     # ------------------------------------------------------------------
     print(f"Building evaluation dataset ({len(TEST_DATASET)} questions via live API)...")
-    data = build_ragas_dataset(vs)
+    data = build_ragas_dataset(chroma)
     print(f"\nDataset built: {len(data['question'])} samples.\n")
 
     # ------------------------------------------------------------------
-    # Step 4: Feed the dataset into RAGAS for evaluation.
-    #
-    # Dataset.from_dict() wraps the plain dict into a HuggingFace Dataset.
-    #
-    # Metrics from ragas.metrics are instantiated without arguments and the
-    # LLM + embeddings are passed to evaluate() once.
-    #
-    # raise_exceptions=False → RAGAS records NaN instead of crashing when
-    # a metric can't be scored (e.g. empty contexts for DB-path questions).
+    # Step 4: Run RAGAS evaluation (LLM-as-judge).
     # ------------------------------------------------------------------
     print("Running RAGAS evaluation (LLM-as-judge)...")
     from datasets import Dataset
     from ragas import evaluate
     from ragas.metrics import Faithfulness, AnswerRelevancy, ContextPrecision, ContextRecall
-    # _build_judge() reads JUDGE_LLM_PROVIDER, JUDGE_LLM_MODEL, and JUDGE_EMB_MODEL
-    # from .env and returns the correct LangChain-wrapped LLM and embeddings objects.
-    # Exits with a clear message if the required API key is missing.
-    judge_llm, judge_emb = _build_judge()
 
+    judge_llm, judge_emb = _build_judge()
     print(f"Judge LLM        : {JUDGE_LLM_MODEL} ({JUDGE_LLM_PROVIDER})")
     print(f"Judge Embeddings : {JUDGE_EMB_MODEL} ({JUDGE_LLM_PROVIDER})\n")
 
-    # experiment_name labels this entire RAGAS evaluation run in LangSmith.
-    # Each run gets a timestamp so you can compare runs over time (e.g. before
-    # and after changing chunk size or switching models).
-    # Format: "hr-ragas-20260515_163224" — visible at the top of the trace.
     experiment_name = f"hr-ragas-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-
     ds = Dataset.from_dict(data)
     result = evaluate(
         ds,
@@ -999,51 +805,47 @@ def main():
         llm=judge_llm,
         embeddings=judge_emb,
         raise_exceptions=False,
-        experiment_name=experiment_name,  # names the run in LangSmith instead of a random UUID
+        experiment_name=experiment_name,
     )
     print("Evaluation complete.\n")
 
     # ------------------------------------------------------------------
-    # Step 5: Print the human-readable report to the console.
+    # Step 5: Print report.
     # ------------------------------------------------------------------
     run_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    agg = print_report(result, run_date, model_name, len(data["question"]))
+    agg = print_report(result, run_date, len(data["question"]))
 
     # ------------------------------------------------------------------
-    # Step 6: Save the full results to a timestamped JSON file.
-    #
-    # Each entry in per_question includes the path type (RAG or DB) so the
-    # JSON file is self-explanatory for later analysis or sharing.
-    # pd.isna() converts NaN to None so the JSON stays valid.
+    # Step 6: Save JSON results.
     # ------------------------------------------------------------------
     import pandas as pd
     df = result.to_pandas()
-    per_question = []
-    metric_keys  = ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]
+    metric_keys = ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]
 
+    per_question = []
     for idx, row in df.iterrows():
         item = TEST_DATASET[idx]
         per_question.append({
-            "index":       idx + 1,
-            "path":        "DB" if item.get("db_path") else "RAG",
-            "topic":       item["topic"],
-            "question":    item["question"],
-            "employee_id": item.get("employee_id"),
-            "answer":      data["answer"][idx],
+            "index":        idx + 1,
+            "path":         "DB" if item.get("db_path") else "RAG",
+            "topic":        item["topic"],
+            "question":     item["question"],
+            "employee_id":  item.get("employee_id"),
+            "answer":       data["answer"][idx],
             "ground_truth": item["ground_truth"],
             **{
                 k: (None if pd.isna(row[k]) else round(float(row[k]), 4))
-                for k in metric_keys
-                if k in df.columns
+                for k in metric_keys if k in df.columns
             },
         })
 
     output = {
         "run_date":         run_date,
-        "answer_model":     model_name,
+        "answer_model":     ANSWER_MODEL_NAME,
         "judge_llm":        JUDGE_LLM_MODEL,
         "judge_embeddings": JUDGE_EMB_MODEL,
         "api_base_url":     API_BASE_URL,
+        "chroma_dir":       CHROMA_DIR,
         "num_questions":    len(data["question"]),
         "rag_path_count":   sum(1 for x in TEST_DATASET if not x.get("db_path")),
         "db_path_count":    sum(1 for x in TEST_DATASET if x.get("db_path")),
@@ -1054,8 +856,6 @@ def main():
         "per_question":     per_question,
     }
 
-    # Timestamp the filename so each run produces a unique file and old
-    # results are never overwritten.
     timestamp    = datetime.now().strftime("%Y%m%d_%H%M%S")
     results_path = SCRIPT_DIR / f"ragas_results_{timestamp}.json"
     with open(results_path, "w", encoding="utf-8") as f:
@@ -1063,14 +863,6 @@ def main():
 
     print(f"\nResults saved to: {results_path}")
 
-
-# ===========================================================================
-# ENTRY POINT
-#
-# WHY: This guard ensures main() only runs when you execute the script
-#      directly (e.g. "python test_03_ragas.py"). If another file imports
-#      this module, main() will NOT run automatically.
-# ===========================================================================
 
 if __name__ == "__main__":
     main()
