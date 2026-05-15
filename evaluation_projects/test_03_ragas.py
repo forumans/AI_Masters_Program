@@ -595,6 +595,11 @@ def build_ragas_dataset(vs: VectorStoreService) -> dict:
     # When LANGCHAIN_TRACING_V2 is not set the decorator is a no-op.
     import httpx
 
+    # langsmith.trace creates a named child span for each question in LangSmith.
+    # This replaces the generic "row 0, row 1" labels with the actual question
+    # text and topic. It is a no-op when LANGCHAIN_TRACING_V2 is not set.
+    from langsmith import trace as ls_trace
+
     questions, answers, contexts_list, ground_truths = [], [], [], []
     n = len(TEST_DATASET)
 
@@ -602,36 +607,52 @@ def build_ragas_dataset(vs: VectorStoreService) -> dict:
         q          = item["question"]
         is_db_path = item.get("db_path", False)
         emp_id     = item.get("employee_id")
-        path_label = "DB " if is_db_path else "RAG"
+        path_label = "DB" if is_db_path else "RAG"
+
+        # Build a meaningful LangSmith span name: "[01/21] [RAG] Leave Policy — When can..."
+        # This is what appears in the LangSmith dashboard instead of "row 0", "row 1", etc.
+        span_name = f"[{i + 1:02d}/{n}] [{path_label}] {item['topic']} — {q[:50]}"
 
         print(f"  [{i + 1:02d}/{n}] [{path_label}] [{item['topic']}] {q[:60]}...")
 
-        # Step A: Retrieve context chunks from ChromaDB for RAG-path questions.
-        #         DB-path questions (leave/org) bypass ChromaDB entirely — the API
-        #         queries PostgreSQL for those, so contexts is intentionally empty.
-        if is_db_path:
-            contexts = []
-        else:
-            contexts = vs.query(q, n_results=5)
+        with ls_trace(
+            name=span_name,
+            # inputs appear in the LangSmith "Inputs" panel for this span
+            inputs={
+                "question":    q,
+                "topic":       item["topic"],
+                "path":        path_label,
+                "employee_id": emp_id,
+            },
+            # tags let you filter runs in LangSmith by topic or path type
+            tags=[item["topic"], path_label],
+        ):
+            # Step A: Retrieve context chunks from ChromaDB for RAG-path questions.
+            #         DB-path questions (leave/org) bypass ChromaDB entirely — the API
+            #         queries PostgreSQL for those, so contexts is intentionally empty.
+            if is_db_path:
+                contexts = []
+            else:
+                contexts = vs.query(q, n_results=5)
 
-        # Step B: Call the live FastAPI server to get the generated answer.
-        #         The payload matches the ChatRequest schema: message + optional employee_id.
-        payload = {"message": q, "employee_id": emp_id}
-        try:
-            resp = httpx.post(
-                f"{API_BASE_URL}/api/chat",
-                json=payload,
-                timeout=30.0,   # 30 s — generous for slow model responses
-            )
-            resp.raise_for_status()
-            # The API wraps the AI response in {"response": "<JSON string>"}
-            raw = resp.json()["response"]
-        except httpx.HTTPError as exc:
-            print(f"    WARNING: API call failed ({exc}). Recording empty answer.")
-            raw = json.dumps({"type": "text", "data": ""})
+            # Step B: Call the live FastAPI server to get the generated answer.
+            #         The payload matches the ChatRequest schema: message + optional employee_id.
+            payload = {"message": q, "employee_id": emp_id}
+            try:
+                resp = httpx.post(
+                    f"{API_BASE_URL}/api/chat",
+                    json=payload,
+                    timeout=30.0,   # 30 s — generous for slow model responses
+                )
+                resp.raise_for_status()
+                # The API wraps the AI response in {"response": "<JSON string>"}
+                raw = resp.json()["response"]
+            except httpx.HTTPError as exc:
+                print(f"    WARNING: API call failed ({exc}). Recording empty answer.")
+                raw = json.dumps({"type": "text", "data": ""})
 
-        # Step C: Strip the JSON wrapper to get plain text for RAGAS.
-        answer = extract_answer_text(raw)
+            # Step C: Strip the JSON wrapper to get plain text for RAGAS.
+            answer = extract_answer_text(raw)
 
         questions.append(q)
         answers.append(answer)
@@ -842,6 +863,12 @@ def main():
         )
     )
 
+    # experiment_name labels this entire RAGAS evaluation run in LangSmith.
+    # Each run gets a timestamp so you can compare runs over time (e.g. before
+    # and after changing chunk size or switching models).
+    # Format: "hr-ragas-20260515_163224" — visible at the top of the trace.
+    experiment_name = f"hr-ragas-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
     ds = Dataset.from_dict(data)
     result = evaluate(
         ds,
@@ -849,6 +876,7 @@ def main():
         llm=judge_llm,
         embeddings=judge_emb,
         raise_exceptions=False,
+        experiment_name=experiment_name,  # names the run in LangSmith instead of a random UUID
     )
     print("Evaluation complete.\n")
 
