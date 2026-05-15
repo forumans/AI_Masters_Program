@@ -125,11 +125,11 @@ OPENAI_API_KEY = env["OPENAI_API_KEY"]
 #      To get a LangSmith API key:
 #        1. Sign up at https://smith.langchain.com (free tier available)
 #        2. Go to Settings → API Keys → Create API Key
-#        3. Add LANGCHAIN_API_KEY=ls__<your_key> to hr_assistant_api/.env
+#        3. Add LANGCHAIN_API_KEY=ls__<your_key> to evaluation_projects/.env
 #        4. Optionally add LANGCHAIN_PROJECT=hr-assistant-ragas-eval
 #
-#      If LANGCHAIN_API_KEY is absent from .env, tracing is silently skipped —
-#      the evaluation still runs normally, just without LangSmith logging.
+#      If LANGCHAIN_API_KEY is absent from evaluation_projects/.env, tracing
+#      is silently skipped — the evaluation still runs normally.
 #
 # WHAT GETS TRACED (from this script):
 #   - RAGAS judge LLM calls (faithfulness, answer_relevancy, etc.)
@@ -143,7 +143,8 @@ OPENAI_API_KEY = env["OPENAI_API_KEY"]
 #     and restart the backend server.
 # ===========================================================================
 
-_langsmith_key = env.get("LANGCHAIN_API_KEY", "")
+# Both LangSmith keys come from evaluation_projects/.env, not the hr_assistant project.
+_langsmith_key = eval_env.get("LANGCHAIN_API_KEY", "")
 LANGSMITH_ENABLED = bool(_langsmith_key)
 
 if LANGSMITH_ENABLED:
@@ -151,7 +152,7 @@ if LANGSMITH_ENABLED:
     # the SDK picks them up at module-load time.
     os.environ["LANGCHAIN_TRACING_V2"] = "true"
     os.environ["LANGCHAIN_API_KEY"]     = _langsmith_key
-    os.environ["LANGCHAIN_PROJECT"]     = env.get(
+    os.environ["LANGCHAIN_PROJECT"]     = eval_env.get(
         "LANGCHAIN_PROJECT", "hr-assistant-ragas-eval"
     )
     os.environ.setdefault(
