@@ -169,6 +169,34 @@ if LANGSMITH_ENABLED:
 API_BASE_URL     = "http://localhost:5000"  # FastAPI backend URL
 TEST_EMPLOYEE_ID = 1                        # replace with a real employee ID from your DB
 
+# ===========================================================================
+# SECTION 3d: JUDGE MODEL CONFIGURATION (Gemini)
+#
+# WHY: The judge model is the LLM RAGAS uses to score each answer — it is
+#      completely separate from the model that generates answers inside the
+#      FastAPI server. Using a different model family (Gemini instead of
+#      OpenAI) avoids self-grading bias: an OpenAI model judging its own
+#      OpenAI-generated answers may rate them more favourably than a neutral
+#      third-party model would.
+#
+# HOW: We use Google's Gemini via langchain-google-genai, wrapped in
+#      LangchainLLMWrapper so RAGAS can call it through the standard
+#      LangChain interface. The same package provides Gemini embeddings
+#      for the AnswerRelevancy metric (semantic similarity scoring).
+#
+# SETUP: Add your Google API key to hr_assistant_api/.env:
+#          GOOGLE_API_KEY=AIza...
+#        Get a key at: https://aistudio.google.com → Get API key
+#
+# MODELS:
+#   Judge LLM  : gemini-2.0-flash  (fast, capable, cost-effective judge)
+#   Embeddings : models/text-embedding-004  (Google's latest embedding model)
+# ===========================================================================
+
+GOOGLE_API_KEY  = env.get("GOOGLE_API_KEY", "")
+JUDGE_LLM_MODEL = "gemini-2.0-flash"          # Gemini model used to score answers
+JUDGE_EMB_MODEL = "models/text-embedding-004"  # Gemini embedding model for answer_relevancy
+
 
 # ===========================================================================
 # SECTION 4: IMPORT THE HR ASSISTANT VECTOR STORE SERVICE
@@ -844,24 +872,40 @@ def main():
     from datasets import Dataset
     from ragas import evaluate
     from ragas.metrics import Faithfulness, AnswerRelevancy, ContextPrecision, ContextRecall
-    from ragas.llms import llm_factory
+    from ragas.llms import LangchainLLMWrapper
     from ragas.embeddings import LangchainEmbeddingsWrapper
-    from langchain_openai import OpenAIEmbeddings as LCOpenAIEmbeddings
-    from openai import OpenAI
+    from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 
-    # Create the judge LLM — this is the model RAGAS uses to score answers,
-    # NOT the model running inside the API that generated those answers.
-    openai_client = OpenAI(api_key=OPENAI_API_KEY)
-    judge_llm     = llm_factory(model_name, client=openai_client)
+    if not GOOGLE_API_KEY:
+        print("ERROR: GOOGLE_API_KEY is missing from .env.")
+        print("  Get a key at https://aistudio.google.com → Get API key")
+        print("  Then add GOOGLE_API_KEY=AIza... to hr_assistant_api/.env\n")
+        return
 
-    # AnswerRelevancy measures semantic similarity between question and answer,
-    # so it needs an embeddings model in addition to the LLM.
-    judge_emb = LangchainEmbeddingsWrapper(
-        LCOpenAIEmbeddings(
-            model=env.get("EMBEDDING_MODEL_NAME", "text-embedding-3-small"),
-            openai_api_key=OPENAI_API_KEY,
+    # Judge LLM: Gemini via LangchainLLMWrapper.
+    # Using a different model family than the answer-generation model (OpenAI)
+    # reduces self-grading bias — Gemini scores OpenAI answers as a neutral judge.
+    judge_llm = LangchainLLMWrapper(
+        ChatGoogleGenerativeAI(
+            model=JUDGE_LLM_MODEL,
+            google_api_key=GOOGLE_API_KEY,
+            temperature=0,   # deterministic scoring — same question always gets same score
         )
     )
+
+    # Judge embeddings: Gemini text-embedding-004.
+    # AnswerRelevancy computes semantic similarity between the question and the
+    # answer using embeddings. We use Gemini embeddings to stay consistent with
+    # the Gemini judge rather than mixing embedding providers.
+    judge_emb = LangchainEmbeddingsWrapper(
+        GoogleGenerativeAIEmbeddings(
+            model=JUDGE_EMB_MODEL,
+            google_api_key=GOOGLE_API_KEY,
+        )
+    )
+
+    print(f"Judge LLM        : {JUDGE_LLM_MODEL} (Gemini)")
+    print(f"Judge Embeddings : {JUDGE_EMB_MODEL} (Gemini)\n")
 
     # experiment_name labels this entire RAGAS evaluation run in LangSmith.
     # Each run gets a timestamp so you can compare runs over time (e.g. before
@@ -917,8 +961,9 @@ def main():
 
     output = {
         "run_date":         run_date,
-        "model":            model_name,
-        "embedding_model":  env.get("EMBEDDING_MODEL_NAME", "unknown"),
+        "answer_model":     model_name,
+        "judge_llm":        JUDGE_LLM_MODEL,
+        "judge_embeddings": JUDGE_EMB_MODEL,
         "api_base_url":     API_BASE_URL,
         "num_questions":    len(data["question"]),
         "rag_path_count":   sum(1 for x in TEST_DATASET if not x.get("db_path")),
