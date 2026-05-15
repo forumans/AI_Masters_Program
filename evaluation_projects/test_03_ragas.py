@@ -630,6 +630,11 @@ def build_ragas_dataset(chroma: Chroma) -> dict:
 # ===========================================================================
 
 def _build_judge():
+    import warnings
+    # LangchainLLMWrapper and LangchainEmbeddingsWrapper are deprecated in favour
+    # of ragas.llms.llm_factory, which currently only supports OpenAI clients.
+    # We suppress these warnings until RAGAS adds llm_factory support for Gemini.
+    warnings.filterwarnings("ignore", category=DeprecationWarning, module="ragas")
     from ragas.llms import LangchainLLMWrapper
     from ragas.embeddings import LangchainEmbeddingsWrapper
 
@@ -789,13 +794,33 @@ def main():
     # Step 4: Run RAGAS evaluation (LLM-as-judge).
     # ------------------------------------------------------------------
     print("Running RAGAS evaluation (LLM-as-judge)...")
+    import warnings
     from datasets import Dataset
-    from ragas import evaluate
-    from ragas.metrics import Faithfulness, AnswerRelevancy, ContextPrecision, ContextRecall
+    from ragas import evaluate, RunConfig
+    # Suppress deprecation warnings from ragas.metrics — the classic API still
+    # works correctly. ragas.metrics.collections (the new API) requires an
+    # OpenAI-specific llm_factory that does not support Gemini, so we stay on
+    # ragas.metrics until RAGAS adds multi-provider support for collections.
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=DeprecationWarning, module="ragas")
+        from ragas.metrics import Faithfulness, AnswerRelevancy, ContextPrecision, ContextRecall
 
     judge_llm, judge_emb = _build_judge()
     print(f"Judge LLM        : {JUDGE_LLM_MODEL} ({JUDGE_LLM_PROVIDER})")
     print(f"Judge Embeddings : {JUDGE_EMB_MODEL} ({JUDGE_LLM_PROVIDER})\n")
+
+    # RunConfig controls how RAGAS executes the 84 judge calls
+    # (21 questions × 4 metrics). The default runs them all concurrently,
+    # which overwhelms Gemini's rate limits and causes TimeoutError.
+    # max_workers=2 serialises requests to stay within rate limits.
+    # timeout=120 gives each call 2 minutes before marking it as failed.
+    # max_retries=3 retries transient errors (rate limit, network blip).
+    run_config = RunConfig(
+        timeout=120,
+        max_retries=3,
+        max_wait=60,
+        max_workers=2,
+    )
 
     experiment_name = f"hr-ragas-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     ds = Dataset.from_dict(data)
@@ -806,6 +831,7 @@ def main():
         embeddings=judge_emb,
         raise_exceptions=False,
         experiment_name=experiment_name,
+        run_config=run_config,
     )
     print("Evaluation complete.\n")
 
