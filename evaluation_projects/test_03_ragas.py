@@ -66,7 +66,13 @@ API_DIR    = REPO_ROOT / "hr_assistant" / "hr_assistant_api"  # where the app li
 
 from dotenv import dotenv_values  # noqa: E402 (intentionally imported after path setup)
 
+# App config — ChromaDB paths, OPENAI_API_KEY, DATABASE_URL, etc.
+# Nothing from this file is changed by the evaluation code.
 env = dotenv_values(API_DIR / ".env")
+
+# Evaluation config — judge provider, model names, judge API keys.
+# Kept in evaluation_projects/.env so the hr_assistant project is untouched.
+eval_env = dotenv_values(SCRIPT_DIR / ".env")
 
 # Push every variable from .env into the process environment.
 # Skip entries where the value is None (blank lines in .env can produce those).
@@ -178,33 +184,36 @@ TEST_EMPLOYEE_ID = 1                        # replace with a real employee ID fr
 #      providers (Gemini ↔ OpenAI) or swap models without touching the code —
 #      useful for controlling costs by picking the cheapest capable model.
 #
-# HOW: Three variables in hr_assistant_api/.env control the judge:
+# HOW: Three variables in evaluation_projects/.env control the judge.
+#      The hr_assistant project files are never modified by the evaluation.
 #
 #   JUDGE_LLM_PROVIDER  — which provider to use: "gemini" or "openai"
 #   JUDGE_LLM_MODEL     — the model name for that provider
 #   JUDGE_EMB_MODEL     — the embedding model name for that provider
 #
-# PROVIDER EXAMPLES (copy the block you want into your .env):
+# PROVIDER EXAMPLES (edit evaluation_projects/.env to switch):
 #
 #   # Gemini (cheapest option, no self-grading bias vs OpenAI answers)
 #   JUDGE_LLM_PROVIDER=gemini
 #   JUDGE_LLM_MODEL=gemini-2.0-flash
 #   JUDGE_EMB_MODEL=models/text-embedding-004
-#   GOOGLE_API_KEY=AIza...          ← get at https://aistudio.google.com
+#   GEMINI_API_KEY=AIza...          ← get at https://aistudio.google.com
 #
 #   # OpenAI (same provider as the answer model — simpler setup)
 #   JUDGE_LLM_PROVIDER=openai
 #   JUDGE_LLM_MODEL=gpt-4o-mini
 #   JUDGE_EMB_MODEL=text-embedding-3-small
-#   # OPENAI_API_KEY already present in .env — no extra key needed
+#   OPENAI_API_KEY=sk-...           ← already in evaluation_projects/.env
 #
 # DEFAULTS: If JUDGE_LLM_PROVIDER is not set, falls back to "gemini".
 # ===========================================================================
 
-JUDGE_LLM_PROVIDER = env.get("JUDGE_LLM_PROVIDER", "gemini").lower().strip()
-GOOGLE_API_KEY     = env.get("GOOGLE_API_KEY", "")
+# All judge settings come from evaluation_projects/.env — not from the hr_assistant project.
+JUDGE_LLM_PROVIDER = eval_env.get("JUDGE_LLM_PROVIDER", "gemini").lower().strip()
+# Accept either GOOGLE_API_KEY or GEMINI_API_KEY — both refer to the same Google key
+GOOGLE_API_KEY     = eval_env.get("GOOGLE_API_KEY") or eval_env.get("GEMINI_API_KEY", "")
 
-# Default model names per provider — overridden by .env values if present
+# Default model names per provider — overridden by evaluation_projects/.env values if present
 _PROVIDER_DEFAULTS = {
     "gemini": {
         "llm": "gemini-2.0-flash",
@@ -216,11 +225,11 @@ _PROVIDER_DEFAULTS = {
     },
 }
 
-JUDGE_LLM_MODEL = env.get(
+JUDGE_LLM_MODEL = eval_env.get(
     "JUDGE_LLM_MODEL",
     _PROVIDER_DEFAULTS.get(JUDGE_LLM_PROVIDER, _PROVIDER_DEFAULTS["gemini"])["llm"],
 )
-JUDGE_EMB_MODEL = env.get(
+JUDGE_EMB_MODEL = eval_env.get(
     "JUDGE_EMB_MODEL",
     _PROVIDER_DEFAULTS.get(JUDGE_LLM_PROVIDER, _PROVIDER_DEFAULTS["gemini"])["emb"],
 )
