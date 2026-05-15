@@ -1,0 +1,152 @@
+{
+  "run_date": "2026-05-14 17:17:47",
+  "model": "gpt-4o",
+  "embedding_model": "text-embedding-3-small",
+  "num_questions": 12,
+  "aggregate_scores": {
+    "faithfulness": 1.0,
+    "answer_relevancy": 0.8938,
+    "context_precision": 0.9097,
+    "context_recall": 1.0
+  },
+  "thresholds": {
+    "faithfulness": 0.8,
+    "answer_relevancy": 0.8,
+    "context_precision": 0.7,
+    "context_recall": 0.75
+  },
+  "per_question": [
+    {
+      "index": 1,
+      "topic": "Leave",
+      "question": "When can employees start using their annual leave after being hired?",
+      "answer": "Employees can start using their annual leave after 90 days of employment.",
+      "ground_truth": "Employees begin to accrue annual leave immediately upon hire, but may not use annual leave until after 90 days of employment.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.8846,
+      "context_precision": 1.0,
+      "context_recall": 1.0
+    },
+    {
+      "index": 2,
+      "topic": "Leave",
+      "question": "How much vacation time do employees earn based on years of service?",
+      "answer": "Years of Service | Vacation Time Earned\nLess than 2 years | 1.5 pro-rated days per month\nYears 2 – 6 | 1.75 pro-rated days per month\n7 or more years of service | 2 pro-rated days per month",
+      "ground_truth": "Employees earn 1.5 pro-rated days per month for less than 2 years of service, 1.75 pro-rated days per month for years 2 through 6, and 2 pro-rated days per month for 7 or more years of service.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.9602,
+      "context_precision": 1.0,
+      "context_recall": 1.0
+    },
+    {
+      "index": 3,
+      "topic": "Leave",
+      "question": "What happens to unused vacation time when an employee is terminated?",
+      "answer": "Any earned, but unused vacation will be paid at the time of termination. This payment will be made in a lump sum. Vacation may not be used to extend the termination date.",
+      "ground_truth": "Any earned but unused vacation will be paid at the time of termination.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.9618,
+      "context_precision": 1.0,
+      "context_recall": 1.0
+    },
+    {
+      "index": 4,
+      "topic": "Leave",
+      "question": "How far in advance must employees request vacation approval?",
+      "answer": "Employees should request approval in writing at least two weeks in advance before taking vacation.",
+      "ground_truth": "Employees should request approval in writing at least two weeks in advance before taking vacation.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.8418,
+      "context_precision": 1.0,
+      "context_recall": 1.0
+    },
+    {
+      "index": 5,
+      "topic": "Expense",
+      "question": "What expenses does the organization not reimburse employees for while traveling?",
+      "answer": "The organization does not reimburse employees for personal activities while traveling or other expenses such as entertainment, liquor, dry cleaning, tickets, fines, bail bonds, etc., incurred by the employee.",
+      "ground_truth": "The organization does not reimburse for personal activities while traveling or other expenses such as entertainment, liquor, dry cleaning, etc.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.9953,
+      "context_precision": 1.0,
+      "context_recall": 1.0
+    },
+    {
+      "index": 6,
+      "topic": "Expense",
+      "question": "How many business days does an employee have to submit a travel expense report after returning from a trip?",
+      "answer": "Days to Submit Travel Expense Report: 7",
+      "ground_truth": "Employees should submit a travel expense report containing receipts within 7 business days of completion of travel.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.8396,
+      "context_precision": 1.0,
+      "context_recall": 1.0
+    },
+    {
+      "index": 7,
+      "topic": "Working Hours",
+      "question": "What are the standard working hours at the organization?",
+      "answer": "The standard working hours at the organization are 8:00 a.m. to 4:30 p.m., Monday through Friday. Certain divisions may have different standard working hours.",
+      "ground_truth": "Standard working hours are 8:00 a.m. to 4:30 p.m., Monday through Friday, with an unpaid meal period of thirty minutes.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 1.0,
+      "context_precision": 1.0,
+      "context_recall": 1.0
+    },
+    {
+      "index": 8,
+      "topic": "Working Hours",
+      "question": "When does the organization's workweek begin and end?",
+      "answer": "The organization's workweek begins at 12:00 a.m. on Saturday and ends at 11:59 p.m. on Friday.",
+      "ground_truth": "The workweek begins at 12:00 a.m. Saturday and ends at 11:59 p.m. Friday.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 1.0,
+      "context_precision": 0.8333,
+      "context_recall": 1.0
+    },
+    {
+      "index": 9,
+      "topic": "Benefits",
+      "question": "Which employees are eligible for paid holidays?",
+      "answer": "Regular full-time and regular part-time employees of the Tri-County Community Action Program, Inc. are eligible for paid holidays. However, Head Start Academic employees follow a different holiday schedule and are not eligible for the same paid holidays as regular employees. Additionally, employees on a paid approved leave of absence are eligible for holiday pay, but those on an unpaid leave are not.",
+      "ground_truth": "Regular full-time and regular part-time employees are eligible for paid holidays.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.6485,
+      "context_precision": 1.0,
+      "context_recall": 1.0
+    },
+    {
+      "index": 10,
+      "topic": "Benefits",
+      "question": "If a paid holiday falls during an employee's scheduled vacation, what happens to their vacation day?",
+      "answer": "If a paid holiday falls during an employee’s scheduled vacation period, the employee will receive holiday pay and still retain their vacation day to use at another time.",
+      "ground_truth": "If a paid holiday falls during an employee's scheduled vacation period, holiday pay will be provided and the employee will still have a vacation day to use.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.9361,
+      "context_precision": 0.5,
+      "context_recall": 1.0
+    },
+    {
+      "index": 11,
+      "topic": "Code of Conduct",
+      "question": "What forms of harassment does the organization prohibit in the workplace?",
+      "answer": "The organization prohibits harassment based on race, color, religion, sex, national origin, age, disability (physical or mental), veteran status, pregnancy, marital status, medical condition, sexual orientation, or any status protected by Federal and state law and regulation.",
+      "ground_truth": "The organization prohibits any form of harassment based on race, color, religion, sex, national origin, age, disability, veteran status, pregnancy, marital status, medical condition, sexual orientation, or any other status protected by Federal and state law.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.9356,
+      "context_precision": 0.75,
+      "context_recall": 1.0
+    },
+    {
+      "index": 12,
+      "topic": "Code of Conduct",
+      "question": "What is the organization's policy on outside employment?",
+      "answer": "Tri-County Community Action Program, Inc.'s policy on outside employment ensures that it does not interfere with an employee's performance or ability to meet job requirements at the organization. Employees may hold outside employment as long as they can satisfactorily meet their responsibilities with Tri-County Community Action Program, Inc. When providing consultation or training to other organizations on their own time, employees must ensure that the service is rendered entirely outside of their working hours. The use of office equipment, supplies, and personnel from Tri-County Community Action Program, Inc. for such services is prohibited. Additionally, employees are not allowed to work for another employer while on a leave of absence, except for annual leave, or while absent due to illness.",
+      "ground_truth": "Employees may hold outside employment as long as it does not interfere with performance or ability to meet the job requirements at the organization.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.7218,
+      "context_precision": 0.8333,
+      "context_recall": 1.0
+    }
+  ]
+}
