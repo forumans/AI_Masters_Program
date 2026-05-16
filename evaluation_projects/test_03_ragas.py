@@ -171,6 +171,13 @@ JUDGE_EMB_MODEL = eval_env.get(
     _PROVIDER_DEFAULTS.get(JUDGE_LLM_PROVIDER, _PROVIDER_DEFAULTS["gemini"])["emb"],
 )
 
+# Max concurrent judge calls sent to the provider API.
+# Set JUDGE_MAX_WORKERS in evaluation_projects/.env to tune for your API tier:
+#   Free tier  (Gemini: 15 RPM,    OpenAI: 60 RPM)  → 1–2
+#   Paid tier  (Gemini: 2000 RPM,  OpenAI: 3500 RPM) → 16–32
+# Default is 2 (safe for free tier). Paid users should raise this to 16+.
+JUDGE_MAX_WORKERS = int(eval_env.get("JUDGE_MAX_WORKERS", 2))
+
 
 # ===========================================================================
 # SECTION 4: CHROMADB CONNECTION
@@ -809,18 +816,20 @@ def main():
     print(f"Judge LLM        : {JUDGE_LLM_MODEL} ({JUDGE_LLM_PROVIDER})")
     print(f"Judge Embeddings : {JUDGE_EMB_MODEL} ({JUDGE_LLM_PROVIDER})\n")
 
-    # RunConfig controls how RAGAS executes the 84 judge calls
-    # (21 questions × 4 metrics). The default runs them all concurrently,
-    # which overwhelms Gemini's rate limits and causes TimeoutError.
-    # max_workers=2 serialises requests to stay within rate limits.
-    # timeout=120 gives each call 2 minutes before marking it as failed.
-    # max_retries=3 retries transient errors (rate limit, network blip).
+    # RunConfig controls how RAGAS executes the judge calls
+    # (21 questions × 4 metrics = 84 total). The default runs them all
+    # concurrently, which overwhelms free-tier rate limits and causes
+    # TimeoutError. max_workers comes from JUDGE_MAX_WORKERS in .env:
+    #   Free tier  → 1–2   (Gemini: 15 RPM,   OpenAI: 60 RPM)
+    #   Paid tier  → 16–32 (Gemini: 2000 RPM, OpenAI: 3500 RPM)
     run_config = RunConfig(
-        timeout=120,
-        max_retries=3,
-        max_wait=60,
-        max_workers=2,
+        timeout=120,       # seconds per individual judge call before marking as failed
+        max_retries=3,     # retry transient errors (rate limit blips, network issues)
+        max_wait=60,       # max seconds to wait between retries
+        max_workers=JUDGE_MAX_WORKERS,
     )
+    print(f"Concurrency      : {JUDGE_MAX_WORKERS} workers "
+          f"({'free tier' if JUDGE_MAX_WORKERS <= 2 else 'paid tier'} setting)\n")
 
     experiment_name = f"hr-ragas-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     ds = Dataset.from_dict(data)
