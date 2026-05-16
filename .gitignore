@@ -1,3 +1,6 @@
+# Evaluation run artifacts
+evaluation_projects/ragas_results_*.json
+
 # Virtual environments
 .venv/
 .venv310/
