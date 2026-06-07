@@ -1,0 +1,19 @@
+Create an MCP service with tools
+
+The MCP service should be able to connect to the healthcare database and perform Read operations.
+
+Tools should be able to:
+- Retrieve all the doctors from the database
+    - Return name, specialization, and contact info
+- Retrieve all the patients from the database
+    - Return name, age, and contact info
+- Given a doctor's doctor_id, retrieve all the patients he/she has treated till now
+    - Return name, age, and contact info of the patients
+- Given a patient's patient_id, retrieve all the doctors who have treated him/her
+    - Return name, specialization, and contact info of the doctors
+- Given a patient's patient_id, retrieve the medical history of the patient
+    - Return diagnosis, treatment, and medication info
+- Given a doctor's doctor_id, retrieve his/her availability
+    - Return availability schedule for a month
+
+
