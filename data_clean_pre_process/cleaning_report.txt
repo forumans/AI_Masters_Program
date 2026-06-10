@@ -1,0 +1,53 @@
+==================================================
+AI DATA PREPROCESSING AGENT LOG AUDIT
+Executed on: 2026-06-08 18:00:55
+==================================================
+
+[1/3] Loading source data tracking: ./data/sales_data_sample.csv...
+[2/3] Analyzing structure and building data metrics...
+-> Detected Rows: 2823 | Detected Columns: 25
+[3/3] Launching self-correcting preprocessing script engine...
+
+------------------------------------------------------------
+AI CODE GENERATION ATTEMPT 1/3
+------------------------------------------------------------
+--- GENERATED CODE PIPELINE ---
+def clean_data(df):
+    # Convert 'ORDERDATE' to datetime
+    df['ORDERDATE'] = pd.to_datetime(df['ORDERDATE'], errors='coerce')
+
+    # Fill missing 'ADDRESSLINE2' with empty strings
+    df['ADDRESSLINE2'] = df['ADDRESSLINE2'].fillna('')
+
+    # Fill missing 'STATE' with 'Unknown'
+    df['STATE'] = df['STATE'].fillna('Unknown')
+
+    # Fill missing 'POSTALCODE' with '00000'
+    df['POSTALCODE'] = df['POSTALCODE'].fillna('00000')
+
+    # Fill missing 'TERRITORY' with 'Unknown'
+    df['TERRITORY'] = df['TERRITORY'].fillna('Unknown')
+
+    # Ensure 'PHONE' is a string
+    df['PHONE'] = df['PHONE'].astype(str)
+
+    # Strip whitespace from string columns
+    str_cols = df.select_dtypes(include=['object']).columns
+    df[str_cols] = df[str_cols].apply(lambda x: x.str.strip())
+
+    return df
+--------------------------------
+
+------------------------------------------------------------
+EXECUTION SUCCESSFUL
+------------------------------------------------------------
+[SUCCESS] Code executed flawlessly on attempt 1!
+
+------------------------------------------------------------
+FINAL PIPELINE SUMMARY
+------------------------------------------------------------
+Original dataset dimensions : (2823, 25)
+Preprocessed dataset dimensions: (2823, 25)
+Rows dropped/filtered       : 0
+[PIPELINE COMPLETE] Exported cleaned file to: ./data/cleaned_output.csv
+[REPORT PRODUCED] Step-by-step audit logs saved to: cleaning_report.txt
