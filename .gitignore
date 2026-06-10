@@ -1,3 +1,6 @@
+# Test project (never commit)
+test_prj/
+
 # Evaluation run artifacts
 evaluation_projects/ragas_results_*.json
 
