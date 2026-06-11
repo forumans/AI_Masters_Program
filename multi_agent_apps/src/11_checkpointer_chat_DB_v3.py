@@ -18,6 +18,9 @@ In this program, we will use PostgresSaver to save the state to a database.
 When the user sends a message, the state is saved to the database with user as the thread_id.
 At the end, when user exits, we will retrieve the summary of the conversation, 
 delete the detailed history from the database, and save only the summary.
+
+THIS IS DESIGNED TO STORE THE STATE IN THE DATABASE FOR MULTIPLE USERS.
+USER_NAME IS USED TO STORE THE STATE IN THE DATABASE FOR THREAD_ID.
 """
 
 from langchain_openai import ChatOpenAI
