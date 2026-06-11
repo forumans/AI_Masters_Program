@@ -11,7 +11,7 @@ When you compile the graph with a checkpointer, i.e., the below line:
 ```python
 checkpointer = InMemorySaver()  # or PostgresSaver()
 ```
-it allows you to maintain state across multiple invocations of the graph. This is useful for chatbots where you
+It allows you to maintain state across multiple invocations of the graph. This is useful for chatbots where you
 want to maintain the conversation history.
 
 In this program, we will use PostgresSaver to save the state to a database.
@@ -52,7 +52,7 @@ def chatbot(state: MessagesState):
 # Summary the conversation to replace the long history from the database
 def summarize_conversation(graph, config):
     """
-    Retrieve the current conversation state and generate a summary using the LLM.
+    Retrieve the current conversation thread/state/in-memory and generate a summary using the LLM.
     
     This function:
     1. Retrieves all messages from the current conversation thread
@@ -92,7 +92,7 @@ builder.add_edge("chatbot", END)
 # Create checkpointer for memory and compile graph using it
 # For saving it to a database, use PostgresSaver()
 #  Ex: checkpointer = PostgresSaver(connect_string="postgresql://user:password@localhost/dbname")
-#      checkpointer.setup() - Call this only once to create the necessary tables in the database
+#      checkpointer.setup() - Create the necessary tables in the database to store the state
 # 
 
 
@@ -102,14 +102,14 @@ connect_string="postgresql://langgraphcheckptr_user:password@localhost/langgraph
 # Set up connection pool and Postgres checkpointer
 # Using a connection pool ensures stable connection handling for long-running workflows
 with ConnectionPool(conninfo=connect_string, max_size=10) as pool:
-    with PostgresSaver.from_conn_string(connect_string) as checkpointer:
+    with PostgresSaver.from_conn_string(connect_string) as checkpointer: # Create a db checkpointer for the graph
 
-        checkpointer.setup()
+        checkpointer.setup() # Check whether the tables exist in the database, if not create them
 
-        graph = builder.compile(checkpointer=checkpointer)
+        graph = builder.compile(checkpointer=checkpointer) # Compile the graph with the checkpointer
 
-        # Configuration
-        config = {"configurable": {"thread_id": "chat_session_1"}}
+        # Configuration - thread_id  is used to store the conversation history in the database
+        config = {"configurable": {"thread_id": "chat_session_1"}} 
 
         while True:
             user_input = input("User: ")
