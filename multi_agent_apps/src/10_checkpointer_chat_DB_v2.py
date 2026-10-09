@@ -35,7 +35,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-llm = ChatOpenAI(model="gpt-4o")
+#llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model="gpt-6-luna")
+
 
 # Chatbot node
 def chatbot(state: MessagesState):

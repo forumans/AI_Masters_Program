@@ -26,7 +26,7 @@ def calculate_tip(bill_amount: float, tip_percentage: float) -> float:
     return bill_amount * (tip_percentage / 100)
 
 
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model="gpt-6-luna")
 llm_with_tools = llm.bind_tools([
     get_weather,
     calculate_tip    

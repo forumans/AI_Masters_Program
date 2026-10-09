@@ -36,7 +36,7 @@ load_dotenv()
 
 
 def login() -> str:
-    return input("Enter your username (it will be used to save your conversation history in the database) : ").strip()
+    return input("Login with username (it will be used to save your conversation history in the database) : ").strip()
 
 
 def setup_custom_summary_table(conn) -> None:
@@ -67,7 +67,7 @@ def save_user_summary(conn, username: str, summary: str) -> None:
     """, (username, summary))
 
 
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model="gpt-6-luna")
 
 # Chatbot node
 def chatbot(state: MessagesState):
@@ -165,9 +165,9 @@ with ConnectionPool(conninfo=connect_string, max_size=10) as pool:
             print(f"Welcome, {username}! Starting a fresh conversation.")
 
         while True:
-            user_input = input("User: ")
+            user_input = input(f"{username}, ask your question (type 'exit' or 'quit' to end): ")
 
-            if user_input.lower() == "exit":
+            if user_input.lower() == "exit" or user_input.lower() == "quit":
                 summary = summarize_conversation(graph, config)
 
                 if summary != "No conversation to summarize.":

@@ -40,7 +40,7 @@ class SupportState(TypedDict):
 
 
 # Initialize LLM
-llm = ChatOpenAI(model="gpt-4o-mini")
+llm = ChatOpenAI(model="gpt-6-luna")
 
 
 # Define structured schema for query classification details only

@@ -30,7 +30,7 @@ class Product_Review(BaseModel):
     summary: str = Field(description="A brief summary of the review")
 
 # Create the structured output model
-llm = ChatOpenAI(model="gpt-4o-mini")
+llm = ChatOpenAI(model="gpt-6-luna")
 
 structured_llm = llm.with_structured_output(Product_Review)
 
