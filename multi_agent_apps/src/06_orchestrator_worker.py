@@ -87,7 +87,7 @@ class ResearchPlan(BaseModel):
     reasoning: str = Field(description="Brief explanation of why these sub-topics were chosen")
 
 
-llm = ChatOpenAI(model="gpt-4o-mini")
+llm = ChatOpenAI(model="gpt-6-luna")
 
 
 # Orechestrator Node to plan the research by dividing the topic into subtopics

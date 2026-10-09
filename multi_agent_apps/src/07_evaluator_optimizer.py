@@ -49,7 +49,7 @@ class EvaluationResult(BaseModel):
     specific_feedback: str = Field(description="Detailed, actionable feedback for revision")
 
 
-openai_llm = ChatOpenAI(model="gpt-4o-mini")
+openai_llm = ChatOpenAI(model="gpt-6-luna")
 gemini_llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite")
 
 

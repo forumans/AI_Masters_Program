@@ -26,7 +26,7 @@ class OverallState(TypedDict):
     facebook_post: str
     final_output: str
 
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model="gpt-6-luna")
 
 def instagram_agent(state: OverallState) -> OverallState:
     prompt = ChatPromptTemplate.from_template(

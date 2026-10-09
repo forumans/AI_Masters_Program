@@ -42,7 +42,7 @@ class ContentState(TypedDict):
     final_content: str
 
 # Create LLM instance
-llm = ChatOpenAI(model="gpt-4o-mini")
+llm = ChatOpenAI(model="gpt-6-luna")
 
 
 # Create nodes for each step
